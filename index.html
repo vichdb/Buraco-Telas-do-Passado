@@ -359,7 +359,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
       </div>
       <button class="play-btn" onclick="startGame()">JOGAR</button>
       <button class="friend-btn" onclick="netHostStart()">👥 Jogar com um amigo (online)</button>
-      <p class="friend-hint">Vocês dois de parceiros contra 2 adversários da IA. Você cria a sala e manda o link no WhatsApp.</p>
+      <p class="friend-hint">Vocês dois de parceiros contra 2 adversários da IA. Escolha o nível e a meta (3.000 ou 5.000) na próxima tela. Você cria a sala e manda o link no WhatsApp.</p>
       <div class="link-row">
         <button class="link-btn" onclick="toggleRulesModal()">Como jogar</button>
       </div>
@@ -382,6 +382,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
     <span id="gameModeBadge" class="chip gold">1x1</span>
     <span id="aiLevelBadge" class="chip blue">IA: Médio</span>
     <span id="targetBadge" class="chip gold">Meta 3.000</span>
+    <span id="netPing" class="chip hidden" title="Atraso da conexão com o amigo"></span>
     <div class="scores">
       <div class="score us"><span class="who">NÓS</span><span id="scoreTeam1" class="num">0</span><span id="roundScoreTeam1" class="sub">(Queda: 0)</span></div>
       <div class="score them"><span class="who">ELES</span><span id="scoreTeam2" class="num">0</span><span id="roundScoreTeam2" class="sub">(Queda: 0)</span></div>
@@ -480,6 +481,19 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   <div class="sheet">
     <h3 id="netTitle">Jogar com amigo</h3>
     <p id="netMsg" class="sub"></p>
+    <div id="netSetup" class="hidden">
+      <label style="display:block;font-size:11px;letter-spacing:.08em;color:var(--muted);margin:6px 0 6px">PARTIDA ATÉ</label>
+      <div class="seg c2" style="margin-bottom:10px">
+        <button data-nt="3000" onclick="netPick('t',3000)">3.000</button>
+        <button data-nt="5000" onclick="netPick('t',5000)">5.000</button>
+      </div>
+      <label style="display:block;font-size:11px;letter-spacing:.08em;color:var(--muted);margin:0 0 6px">NÍVEL DA IA</label>
+      <div class="seg c3" style="margin-bottom:12px">
+        <button data-nl="easy" onclick="netPick('l','easy')">Fácil</button>
+        <button data-nl="medium" onclick="netPick('l','medium')">Médio</button>
+        <button data-nl="hard" onclick="netPick('l','hard')">Difícil</button>
+      </div>
+    </div>
     <div id="netLinkBox" class="hidden">
       <input id="netLink" class="netinp" readonly>
       <div class="row2">
@@ -1077,8 +1091,10 @@ function playerDrawFromDeck() {
             if (turnIndex !== 0) return logStatus('Não é a sua vez!');
             if (hasDrawn) return logStatus('Você já comprou nesta rodada!');
             
+            if (deck.length === 0) refillDeckFromDead();
             if (deck.length > 0) {
                 const drawn = deck.pop();
+                refillDeckFromDead();
                 players[0].hand.push(drawn);
                 hasDrawn = true;
                 lastDrawnCardId = drawn.id;
@@ -1963,6 +1979,7 @@ function aiTakeTurn(level, ai) {
         log.push('assumiu a vez do amigo');
     } else if (choice === 'deck' && deck.length > 0) {
         ai.hand.push(deck.pop());
+        refillDeckFromDead();
         aiPileStreak = 0;
         log.push('comprou do monte');
     } else {
@@ -2071,6 +2088,21 @@ function humanOutOK(n, newCards, existingMeld) {
     outBlocked = true;
     logStatus('Sem canastra limpa você não pode ficar sem cartas: guarde pelo menos 2 cartas antes de descartar.');
     return false;
+}
+
+
+// Quando o monte acaba e algum morto ainda não foi pego, ele vira o novo monte.
+// Quem nunca pegou o seu morto continua perdendo 100 no fim (se sobrarem os 2, os dois times perdem).
+function refillDeckFromDead() {
+    if (deck.length > 0) return false;
+    const idx = deadDecks[0].length > 0 ? 0 : (deadDecks[1].length > 0 ? 1 : -1);
+    if (idx < 0) return false;
+    deck = deadDecks[idx];
+    deadDecks[idx] = [];
+    const left = (deadDecks[0].length > 0 ? 1 : 0) + (deadDecks[1].length > 0 ? 1 : 0);
+    logStatus('O monte acabou: um morto virou o novo monte!');
+    showToast('Acabou o monte: um morto virou monte (quem não pegou o morto perde 100)', '');
+    return true;
 }
 
 // ---------- partida até 3.000 / 5.000 + histórico permanente (vitórias e derrotas) ----------
@@ -2185,6 +2217,19 @@ let mortoSeat = {};
 let lastPlayText = '';
 let aiSkipDraw = false;
 let netCode = '';
+let netLastSent = '', netLastGot = '';
+let netLastRx = 0, netHbTimer = null;      // batimento: detecta queda em ~12 s
+let netGuestTok = '', netHostTok = '';       // identifica o mesmo convidado ao voltar
+let netReconnecting = false, netRetryTimer = null, netTries = 0, netCancelled = false;
+
+function netStartHeartbeat(onDead) {
+    clearInterval(netHbTimer);
+    netLastRx = Date.now();
+    netHbTimer = setInterval(() => {
+        netSend({ t: 'ping', ts: Date.now() });
+        if (Date.now() - netLastRx > 12000) onDead();
+    }, 4000);
+}
 
 function setLastPlay(t) {
     lastPlayText = t || '';
@@ -2197,8 +2242,18 @@ function netShow(title, msg, opts) {
     document.getElementById('netTitle').innerText = title;
     document.getElementById('netMsg').innerText = msg;
     document.getElementById('netLinkBox').classList.toggle('hidden', !opts.link);
+    document.getElementById('netSetup').classList.toggle('hidden', !opts.link || netRole !== 'host');
+    netSyncSetup();
     if (opts.link) document.getElementById('netLink').value = opts.link;
     document.getElementById('netModal').classList.remove('hidden');
+}
+function netSyncSetup() {
+    document.querySelectorAll('#netSetup [data-nt]').forEach(b => b.classList.toggle('active', Number(b.dataset.nt) === targetScore));
+    document.querySelectorAll('#netSetup [data-nl]').forEach(b => b.classList.toggle('active', b.dataset.nl === aiLevel));
+}
+function netPick(kind, v) {
+    if (kind === 't') setTarget(v); else setAILevel(v);
+    netSyncSetup();
 }
 function netHide() { document.getElementById('netModal').classList.add('hidden'); }
 
@@ -2230,9 +2285,9 @@ function netShutdown() {
     try { if (netConn) netConn.close(); } catch (e) { }
     try { if (netPeer) netPeer.destroy(); } catch (e) { }
     netConn = null; netPeer = null; netGuestConnected = false;
-    clearTimeout(netBcTimer);
+    clearTimeout(netBcTimer); clearInterval(netHbTimer); clearTimeout(netRetryTimer);
 }
-function netCancel() { netShutdown(); location.href = location.pathname; }
+function netCancel() { netCancelled = true; netShutdown(); location.href = location.pathname; }
 
 function netSend(obj) {
     try { if (netConn && netConn.open !== false) netConn.send(obj); } catch (e) { }
@@ -2266,15 +2321,25 @@ async function netHostStart() {
 }
 
 function netHostOnConn(conn) {
-    if (netGuestConnected) { try { conn.close(); } catch (e) { } return; }
+    const tok = (conn.metadata && conn.metadata.tok) || '';
+    if (netGuestConnected) {
+        // o mesmo convidado voltando (a conexão antiga pode estar "morta" mas ainda não detectada)
+        if (!tok || tok !== netHostTok) { try { conn.close(); } catch (e) { } return; }
+        const oldc = netConn; netConn = null; netGuestConnected = false;
+        try { if (oldc) oldc.close(); } catch (e) { }
+    }
     netConn = conn;
     let opened = false;
-    const onOpen = () => { if (opened) return; opened = true; netGuestConnected = true; netGuestJoined(); };
+    const onOpen = () => {
+        if (opened || netConn !== conn) return; opened = true;
+        if (!netHostTok) netHostTok = tok;
+        netLastSent = ''; netGuestConnected = true; netStartHeartbeat(() => netGuestLeft(conn)); netGuestJoined();
+    };
     conn.on('open', onOpen);
     if (conn.open) onOpen();
-    conn.on('data', m => netHostOnData(m));
-    conn.on('close', () => netGuestLeft());
-    conn.on('error', () => netGuestLeft());
+    conn.on('data', m => { if (netConn === conn) netHostOnData(m); });
+    conn.on('close', () => netGuestLeft(conn));
+    conn.on('error', () => netGuestLeft(conn));
 }
 
 function netGuestJoined() {
@@ -2283,6 +2348,7 @@ function netGuestJoined() {
     if (running && players.length === 4) {
         players[2].isHuman = true;
         showToast('Seu amigo voltou para a mesa!', 'good');
+        if (turnIndex === 2) { clearTimeout(aiTimer); logStatus(hasDrawn ? 'Vez do seu amigo: baixar ou descartar.' : 'Vez do seu amigo...'); }
         netBroadcast();
         updateUI();
     } else {
@@ -2291,12 +2357,15 @@ function netGuestJoined() {
     }
 }
 
-function netGuestLeft() {
+function netGuestLeft(conn) {
+    if (conn && conn !== netConn) return;      // conexão antiga já substituída
     if (!netGuestConnected) return;
-    netGuestConnected = false; netConn = null;
+    netGuestConnected = false;
+    try { if (netConn) netConn.close(); } catch (e) { }
+    netConn = null; clearInterval(netHbTimer);
     if (players.length === 4 && players[2]) {
         players[2].isHuman = false;
-        showToast('Seu amigo saiu: a IA assumiu o lugar dele.', '');
+        showToast('Seu amigo caiu: a IA joga por ele até ele voltar (pelo mesmo link).', '');
         if (!rodadaEncerrada && turnIndex === 2) {
             if (hasDrawn) aiSkipDraw = true;
             scheduleAI();
@@ -2305,7 +2374,16 @@ function netGuestLeft() {
     }
 }
 
+function netPingIn(m) {
+    if (m.t === 'ping') netSend({ t: 'pong', ts: m.ts });
+    else if (m.t === 'pong' && m.ts) {
+        const rtt = Date.now() - m.ts, el = document.getElementById('netPing');
+        if (el) { el.classList.remove('hidden'); el.innerText = (rtt < 250 ? '🟢 ' : rtt < 700 ? '🟡 ' : '🔴 ') + rtt + ' ms'; }
+    }
+}
 function netHostOnData(m) {
+    netLastRx = Date.now();
+    if (m && (m.t === 'ping' || m.t === 'pong')) return netPingIn(m);
     if (!m || m.t !== 'cmd') return;
     netRunCmd(m);
 }
@@ -2345,6 +2423,7 @@ function netRunCmd(m) {
 
 function netSnapshot() {
     const ended = rodadaEncerrada;
+    if (!ended) { try { calcularPontosQueda(); } catch (e) { } }
     return {
         round: netRound, level: aiLevel, target: targetScore,
         turn: turnIndex, hasDrawn, lastDrawn: lastDrawnCardId,
@@ -2360,32 +2439,78 @@ function netSnapshot() {
 function netBroadcast() {
     if (netRole !== 'host' || !netGuestConnected || netBusy) return;
     clearTimeout(netBcTimer);
-    netBcTimer = setTimeout(() => { if (!netBusy) netSend({ t: 'state', s: netSnapshot() }); }, 25);
+    netBcTimer = setTimeout(() => {
+        if (netBusy) return;
+        const snap = JSON.stringify(netSnapshot());
+        if (snap === netLastSent) return;
+        netLastSent = snap;
+        netSend({ t: 'state', raw: snap });
+    }, 60);
 }
 
 // ------------------------- CONVIDADO -------------------------
 async function netGuestJoin(code) {
     netRole = 'guest'; netCode = code;
+    try {
+        netGuestTok = localStorage.getItem('buracoTok') || '';
+        if (!netGuestTok) { netGuestTok = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('buracoTok', netGuestTok); }
+    } catch (e) { netGuestTok = netGuestTok || Math.random().toString(36).slice(2); }
     document.getElementById('landing').classList.add('hidden');
     netShow('Entrando na sala ' + code + '…', 'Conectando ao anfitrião.');
     try { await netLoadPeer(); } catch (e) {
         return netShow('Sem conexão', 'Não consegui carregar o módulo de jogo online. Verifique a internet e abra o link de novo.', {});
     }
+    netInstallGuestActions();
+    netTries = 0;
+    netGuestConnect();
+    // ao voltar para a aba/app (ex.: depois de abrir o WhatsApp) ou quando a internet volta, confere na hora
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) netGuestCheck(); });
+    window.addEventListener('online', netGuestCheck);
+}
+
+function netGuestCheck() {
+    if (netRole !== 'guest' || netCancelled) return;
+    if (!netConn || netConn.open === false || (netGuestStarted && Date.now() - netLastRx > 9000)) netGuestLost('check');
+}
+
+function netGuestConnect() {
+    if (netCancelled) return;
+    clearTimeout(netRetryTimer);
+    try { if (netConn) { const c = netConn; netConn = null; c.close(); } } catch (e) { }
+    try { if (netPeer) netPeer.destroy(); } catch (e) { }
+    netTries++;
+    let done = false;
+    const lost = (why) => { if (done) return; done = true; netGuestLost(why); };
     const peer = new Peer({ debug: 0 });
     netPeer = peer;
-    let opened = false;
-    const fail = (txt) => { if (!netGuestStarted) netShow('Não deu para entrar', txt, {}); else showToast('Conexão perdida com o anfitrião.', ''); };
-    peer.on('error', err => fail('Sala não encontrada ou o anfitrião saiu (' + ((err && err.type) || 'erro') + ').'));
+    peer.on('error', err => lost((err && err.type) || 'erro'));
     peer.on('open', () => {
-        const conn = peer.connect(NET_PREFIX + code, { reliable: true, serialization: 'json' });
+        const conn = peer.connect(NET_PREFIX + netCode, { reliable: true, serialization: 'json', metadata: { tok: netGuestTok } });
         netConn = conn;
-        const to = setTimeout(() => { if (!opened) fail('O anfitrião não respondeu. Peça para ele criar a sala de novo.'); }, 15000);
-        conn.on('open', () => { opened = true; clearTimeout(to); netShow('Conectado!', 'Aguardando o anfitrião começar a partida…'); });
-        conn.on('data', m => netGuestOnData(m));
-        conn.on('close', () => fail('O anfitrião saiu da partida.'));
-        conn.on('error', () => fail('Falha na conexão.'));
+        const to = setTimeout(() => lost('timeout'), 10000);
+        conn.on('open', () => {
+            clearTimeout(to); netTries = 0; netReconnecting = false; netLastRx = Date.now();
+            netStartHeartbeat(() => lost('hb'));
+            if (netGuestStarted) netHide(); else netShow('Conectado!', 'Aguardando o anfitrião começar a partida…');
+        });
+        conn.on('data', m => { netLastRx = Date.now(); netGuestOnData(m); });
+        conn.on('close', () => lost('close'));
+        conn.on('error', () => lost('erro'));
     });
-    netInstallGuestActions();
+}
+
+function netGuestLost(why) {
+    if (netRole !== 'guest' || netCancelled) return;
+    clearInterval(netHbTimer);
+    const limit = netGuestStarted ? 200 : 6;          // depois de entrar, insiste por ~10 min
+    if (netTries >= limit) {
+        return netShow('Não deu para entrar', 'Sala não encontrada ou o anfitrião saiu. Peça para ele conferir se a tela dele continua aberta e mande o link de novo.', {});
+    }
+    netReconnecting = true;
+    netShow(netGuestStarted ? 'Reconectando…' : 'Entrando na sala ' + netCode + '…',
+        netGuestStarted ? 'A conexão caiu. Tentando voltar para a mesma partida (tentativa ' + netTries + ')…' : 'Tentando conectar ao anfitrião (' + netTries + ')…');
+    clearTimeout(netRetryTimer);
+    netRetryTimer = setTimeout(netGuestConnect, 2500);
 }
 
 function netCmd(c, extra) {
@@ -2402,9 +2527,15 @@ function netInstallGuestActions() {
 }
 
 function netGuestOnData(m) {
+    if (m && (m.t === 'ping' || m.t === 'pong')) return netPingIn(m);
     if (!m) return;
     if (m.t === 'msg') return logStatus(m.text);
-    if (m.t === 'state') netApply(m.s);
+    if (m.t === 'state') {
+        const raw = m.raw || JSON.stringify(m.s);
+        if (raw === netLastGot) return;
+        netLastGot = raw;
+        netApply(m.raw ? JSON.parse(m.raw) : m.s);
+    }
 }
 
 function netApply(S) {
@@ -2450,6 +2581,11 @@ function netApply(S) {
     Object.keys(S.mortoSeat || {}).forEach(t => { mortoBy[t] = seatLabel(players[(S.mortoSeat[t] - 2 + 4) % 4]); });
     selectedCards = selectedCards.map(c => players[0].hand.find(h => h.id === c.id)).filter(Boolean);
     setLastPlay(S.lastPlay);
+    document.getElementById('gameModeBadge').innerText = '2x2';
+    [0, 1].forEach(tm => {
+        const el = document.getElementById(tm === 0 ? 'roundScoreTeam1' : 'roundScoreTeam2');
+        if (el) el.innerText = `(Queda: ${roundScores[tm]}${(!S.ended && !deadDecksTaken[tm]) ? ' · sem morto −100' : ''})`;
+    });
 
     if (S.ended && S.final && !roundScored) {
         lastHitter = S.hitter == null ? null : players[(S.hitter - 2 + 4) % 4];
