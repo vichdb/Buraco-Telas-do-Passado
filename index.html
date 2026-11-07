@@ -391,7 +391,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 07/11 · 20h30 · conexão online com retransmissão</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 07/11 · 21h · conexão online com 2 caminhos</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -2422,6 +2422,102 @@ function netLoadPeer() {
     });
 }
 
+
+// ---------- caminho alternativo: retransmissão por servidor público (MQTT sobre WebSocket) ----------
+// Usado quando a conexão direta (WebRTC) é bloqueada pela rede. Passa por 443/8884, que quase toda rede libera.
+const NET_BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+let netKey = '', netMode = 'rtc', netBrokerIdx = 0, netPeerOk = true, netMqttOk = false;
+let netMqtt = [], netMqttConns = {}, netGuestMqtt = null;
+function netMqttBase() { return 'buraco-tdp/v1/' + netCode + '-' + netKey; }
+function netRandId(n) { let r = ''; const a = 'abcdefghijkmnpqrstuvwxyz23456789'; for (let i = 0; i < n; i++) r += a[Math.floor(Math.random() * a.length)]; return r; }
+function netLoadMqtt() {
+    return new Promise((resolve, reject) => {
+        if (window.mqtt) return resolve();
+        const urls = ['https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js', 'https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js'];
+        let i = 0;
+        const next = () => {
+            if (i >= urls.length) return reject(new Error('mqtt'));
+            const s = document.createElement('script'); s.src = urls[i++];
+            s.onload = () => (window.mqtt ? resolve() : next()); s.onerror = next;
+            document.head.appendChild(s);
+        };
+        next();
+    });
+}
+class NetMqttConn {
+    constructor(client, cid, role, meta) { this.client = client; this.cid = cid; this.role = role; this.metadata = meta || {}; this.open = false; this.closed = false; this.h = {}; this.hello = null; }
+    on(ev, cb) { (this.h[ev] = this.h[ev] || []).push(cb); return this; }
+    _emit(ev, a) { (this.h[ev] || []).slice().forEach(f => { try { f(a); } catch (e) { } }); }
+    send(m) {
+        if (this.closed) return;
+        try { this.client.publish(netMqttBase() + '/c/' + this.cid + (this.role === 'host' ? '/h2g' : '/g2h'), JSON.stringify(m), { qos: 1 }); } catch (e) { }
+    }
+    close() { if (this.closed) return; try { this.send({ t: 'bye' }); } catch (e) { } this._end(); }
+    _end() {
+        if (this.closed) return;
+        this.closed = true; this.open = false; clearInterval(this.hello);
+        if (this.role === 'host') delete netMqttConns[this.cid];
+        else setTimeout(() => { try { this.client.end(); } catch (e) { } }, 300);
+        this._emit('close');
+    }
+}
+function netMqttHostStart() {
+    if (!netKey || netMqtt.length) return;
+    netLoadMqtt().then(() => {
+        NET_BROKERS.forEach((url, bi) => {
+            let cl; try { cl = mqtt.connect(url, { clientId: 'h' + netRandId(10), reconnectPeriod: 3000, connectTimeout: 8000, keepalive: 20, clean: true }); } catch (e) { return; }
+            netMqtt.push(cl);
+            cl.on('connect', () => { netDiag('retransmissão ' + (bi + 1) + ': conectada ✓'); cl.subscribe([netMqttBase() + '/join', netMqttBase() + '/c/+/g2h'], { qos: 1 }); });
+            cl.on('error', () => netDiag('retransmissão ' + (bi + 1) + ': erro'));
+            cl.on('message', (topic, payload) => netMqttHostMsg(cl, topic, payload));
+        });
+    }).catch(() => netDiag('retransmissão indisponível (biblioteca não carregou)'));
+}
+function netMqttHostMsg(cl, topic, payload) {
+    let m; try { m = JSON.parse(payload.toString()); } catch (e) { return; }
+    const base = netMqttBase();
+    if (topic === base + '/join') {
+        if (!m || m.t !== 'hello' || !m.cid) return;
+        let c = netMqttConns[m.cid];
+        if (c) { c.client = cl; c.send({ t: 'hello' }); return; }         // o convidado repetiu o "oi"
+        c = new NetMqttConn(cl, m.cid, 'host', { tok: m.tok || '' }); netMqttConns[m.cid] = c;
+        netDiag('amigo entrou pela retransmissão ✓');
+        netHostOnConn(c);
+        if (c.closed) return;
+        c.open = true; c._emit('open'); c.send({ t: 'hello' });
+        return;
+    }
+    const mm = topic.match(/\/c\/([^/]+)\/g2h$/); if (!mm) return;
+    const c = netMqttConns[mm[1]]; if (!c || c.closed) return;
+    c.client = cl;
+    if (m && m.t === 'bye') return c._end();
+    c._emit('data', m);
+}
+// convidado: devolve o objeto de conexão (mesma interface do PeerJS)
+function netMqttGuestConn(lost) {
+    const bi = netBrokerIdx % NET_BROKERS.length;
+    netDiag('retransmissão: tentando servidor ' + (bi + 1));
+    const cid = 'g' + netRandId(10);
+    const cl = mqtt.connect(NET_BROKERS[bi], { clientId: cid, reconnectPeriod: 2000, connectTimeout: 8000, keepalive: 20, clean: true });
+    netGuestMqtt = cl;
+    const conn = new NetMqttConn(cl, cid, 'guest', { tok: netGuestTok });
+    cl.on('error', () => { netDiag('retransmissão: erro de rede'); });
+    cl.on('connect', () => {
+        cl.subscribe(netMqttBase() + '/c/' + cid + '/h2g', { qos: 1 }, () => {
+            const hi = () => { if (!conn.open && !conn.closed) cl.publish(netMqttBase() + '/join', JSON.stringify({ t: 'hello', cid, tok: netGuestTok }), { qos: 1 }); };
+            hi(); conn.hello = setInterval(hi, 1500);
+        });
+    });
+    cl.on('message', (topic, payload) => {
+        let m; try { m = JSON.parse(payload.toString()); } catch (e) { return; }
+        if (!conn.open && !conn.closed) { conn.open = true; clearInterval(conn.hello); conn._emit('open'); }
+        if (m && m.t === 'hello') return;
+        if (m && m.t === 'bye') return conn._end();
+        conn._emit('data', m);
+    });
+    return conn;
+}
+
 function netRandomCode() {
     const abc = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
     let c = '';
@@ -2432,6 +2528,8 @@ function netRandomCode() {
 function netShutdown() {
     try { if (netConn) netConn.close(); } catch (e) { }
     try { if (netPeer) netPeer.destroy(); } catch (e) { }
+    try { netMqtt.forEach(c => c.end(true)); if (netGuestMqtt) netGuestMqtt.end(true); } catch (e) { }
+    netMqtt = []; netMqttConns = {}; netGuestMqtt = null;
     netConn = null; netPeer = null; netGuestConnected = false;
     clearTimeout(netBcTimer); netStopHb(); clearTimeout(netRetryTimer); if (netKeep) { netKeep.stop(); netKeep = null; }
 }
@@ -2446,9 +2544,16 @@ async function netHostStart() {
     netRole = 'host';
     setGameMode('2x2');
     netShow('Criando a sala…', 'Um instante.');
-    try { await netLoadPeer(); } catch (e) {
-        netRole = null;
-        return netShow('Sem conexão', 'Não consegui carregar o módulo de jogo online. Verifique a internet e tente de novo.', {});
+    netKey = netRandId(10);
+    let peerLoaded = true;
+    try { await netLoadPeer(); } catch (e) { peerLoaded = false; }
+    const showLink = () => {
+        const link = location.origin + location.pathname + '?sala=' + netCode + '&k=' + netKey;
+        netShow('Sala criada: ' + netCode, 'Mande este link para o seu amigo. Quando ele entrar, a partida começa' + (pendingScores ? ' de onde pararam (' + pendingScores[0] + ' × ' + pendingScores[1] + ')' : '') + '. Ele joga como seu parceiro contra 2 adversários da IA.', { link });
+    };
+    if (!peerLoaded) {            // sem a biblioteca de conexão direta: só o caminho por servidor
+        netCode = netRandomCode(); netMqttHostStart(); netDiag('conexão direta indisponível; usando só a retransmissão');
+        return showLink();
     }
     const tryOpen = (attempt) => {
         netCode = netRandomCode();
@@ -2457,16 +2562,17 @@ async function netHostStart() {
         peer.on('open', () => {
             netDiag('servidor de salas: conectado ✓ (sala ' + netCode + ')');
             netStartKeepAlive();
-            const link = location.origin + location.pathname + '?sala=' + netCode;
-            netShow('Sala criada: ' + netCode, 'Mande este link para o seu amigo. Quando ele entrar, a partida começa' + (pendingScores ? ' de onde pararam (' + pendingScores[0] + ' × ' + pendingScores[1] + ')' : '') + '. Ele joga como seu parceiro contra 2 adversários da IA.', { link });
+            netMqttHostStart();
+            showLink();
         });
         peer.on('connection', conn => { netDiag('amigo bateu na porta ✓'); netWatchIce(conn, 'anfitrião'); netHostOnConn(conn); });
         peer.on('error', err => {
             if (err && err.type === 'unavailable-id' && attempt < 3) { try { peer.destroy(); } catch (e) { } return tryOpen(attempt + 1); }
-            netDiag('erro do servidor: ' + ((err && err.type) || err));
-            netShow('Erro na conexão', 'Não foi possível criar a sala (' + ((err && err.type) || 'erro') + '). Tente de novo.', {});
+            netDiag('erro do servidor de salas: ' + ((err && err.type) || err));
+            netMqttHostStart(); showLink();       // mesmo assim a sala funciona pelo caminho por servidor
         });
-        peer.on('disconnected', () => { netDiag('servidor de salas: desconectou, reconectando…'); try { peer.reconnect(); } catch (e) { } });
+        let dcT = null;
+        peer.on('disconnected', () => { if (dcT) return; dcT = setTimeout(() => { dcT = null; try { if (!peer.destroyed) { netDiag('servidor de salas: reconectando…'); peer.reconnect(); } } catch (e) { } }, 3000); });
     };
     tryOpen(0);
 }
@@ -2601,17 +2707,19 @@ function netBroadcast() {
 }
 
 // ------------------------- CONVIDADO -------------------------
-async function netGuestJoin(code) {
-    netRole = 'guest'; netCode = code;
+async function netGuestJoin(code, key) {
+    netRole = 'guest'; netCode = code; netKey = key || '';
     try {
         netGuestTok = localStorage.getItem('buracoTok') || '';
         if (!netGuestTok) { netGuestTok = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('buracoTok', netGuestTok); }
     } catch (e) { netGuestTok = netGuestTok || Math.random().toString(36).slice(2); }
     document.getElementById('landing').classList.add('hidden');
     netShow('Entrando na sala ' + code + '…', 'Conectando ao anfitrião.');
-    try { await netLoadPeer(); } catch (e) {
-        return netShow('Sem conexão', 'Não consegui carregar o módulo de jogo online. Verifique a internet e abra o link de novo.', {});
-    }
+    netPeerOk = true; netMqttOk = false;
+    try { await netLoadPeer(); } catch (e) { netPeerOk = false; }
+    if (netKey) { try { await netLoadMqtt(); netMqttOk = true; } catch (e) { } }
+    if (!netPeerOk && !netMqttOk) return netShow('Sem conexão', 'Não consegui carregar o módulo de jogo online. Verifique a internet e abra o link de novo.', {});
+    netMode = netPeerOk ? 'rtc' : 'mqtt';
     netInstallGuestActions();
     netTries = 0;
     netGuestConnect();
@@ -2631,21 +2739,24 @@ function netGuestConnect() {
     clearTimeout(netRetryTimer);
     try { if (netConn) { const c = netConn; netConn = null; c.close(); } } catch (e) { }
     try { if (netPeer) netPeer.destroy(); } catch (e) { }
+    try { if (netGuestMqtt) netGuestMqtt.end(true); } catch (e) { } netGuestMqtt = null;
     netTries++;
-    let done = false;
-    const lost = (why) => { if (done) return; done = true; netGuestLost(why); };
-    const relay = netTries >= 3 && netTries % 2 === 1;       // a partir da 3ª tentativa alterna: via servidor de retransmissão
-    netDiag('tentativa ' + netTries + (relay ? ' (forçando retransmissão)' : ''));
-    const peer = new Peer({ debug: 0, config: netIce(relay) });
-    netPeer = peer;
-    peer.on('error', err => lost((err && err.type) || 'erro'));
-    peer.on('open', () => {
-        netDiag('servidor de salas: conectado ✓, procurando a sala ' + netCode);
-        const conn = peer.connect(NET_PREFIX + netCode, { reliable: true, serialization: 'json', metadata: { tok: netGuestTok } });
-        netConn = conn; netWatchIce(conn, 'convidado');
-        const to = setTimeout(() => lost('timeout'), 22000);
+    let done = false, to = null;
+    const useMqtt = netMode === 'mqtt' && netMqttOk;
+    const lost = (why) => {
+        if (done) return; done = true; clearTimeout(to);
+        // alterna entre o caminho direto e o por servidor a cada falha (se os dois existirem)
+        if (netGuestStarted === false || true) {
+            if (useMqtt) { netBrokerIdx++; if (netPeerOk) netMode = 'rtc'; }
+            else if (netMqttOk) netMode = 'mqtt';
+        }
+        netGuestLost(why);
+    };
+    const wire = (conn) => {
+        netConn = conn;
         conn.on('open', () => {
-            netDiag('conectado com o anfitrião ✓');
+            if (done) return;
+            netDiag('conectado com o anfitrião ✓ (' + (useMqtt ? 'por servidor' : 'direto') + ')');
             clearTimeout(to); netTries = 0; netReconnecting = false; netLastRx = Date.now();
             netStartHeartbeat(() => lost('hb'));
             if (netGuestStarted) netHide(); else netShow('Conectado!', 'Aguardando o anfitrião começar a partida…');
@@ -2653,6 +2764,24 @@ function netGuestConnect() {
         conn.on('data', m => { netLastRx = Date.now(); netGuestOnData(m); });
         conn.on('close', () => lost('close'));
         conn.on('error', () => lost('erro'));
+    };
+    if (useMqtt) {
+        netDiag('tentativa ' + netTries + ' (por servidor)');
+        to = setTimeout(() => lost('timeout'), 14000);
+        try { wire(netMqttGuestConn(lost)); } catch (e) { lost('mqtt'); }
+        return;
+    }
+    const relay = netTries >= 3 && netTries % 2 === 1;
+    netDiag('tentativa ' + netTries + (relay ? ' (direto, forçando retransmissão TURN)' : ' (direto)'));
+    const peer = new Peer({ debug: 0, config: netIce(relay) });
+    netPeer = peer;
+    to = setTimeout(() => lost('timeout'), netMqttOk ? 9000 : 22000);
+    peer.on('error', err => lost((err && err.type) || 'erro'));
+    peer.on('open', () => {
+        netDiag('servidor de salas: conectado ✓, procurando a sala ' + netCode);
+        const conn = peer.connect(NET_PREFIX + netCode, { reliable: true, serialization: 'json', metadata: { tok: netGuestTok } });
+        netWatchIce(conn, 'convidado');
+        wire(conn);
     });
 }
 
@@ -2668,7 +2797,7 @@ function netGuestLost(why) {
     netShow(netGuestStarted ? 'Reconectando…' : 'Entrando na sala ' + netCode + '…',
         netGuestStarted ? 'A conexão caiu. Tentando voltar para a mesma partida (tentativa ' + netTries + ')…' : 'Procurando a sala… (' + netTries + '). Se demorar, peça um link novo: quem criou a sala precisa deixar a aba do jogo aberta e, se atualizou a página, a sala antiga deixa de existir.');
     clearTimeout(netRetryTimer);
-    netRetryTimer = setTimeout(netGuestConnect, 2500);
+    netRetryTimer = setTimeout(netGuestConnect, 1200);
 }
 
 function netCmd(c, extra) {
@@ -2758,8 +2887,9 @@ function netApply(S) {
 }
 
 function netBoot() {
-    const code = (new URLSearchParams(location.search).get('sala') || '').trim().toUpperCase();
-    if (code) netGuestJoin(code);
+    const qs = new URLSearchParams(location.search);
+    const code = (qs.get('sala') || '').trim().toUpperCase();
+    if (code) netGuestJoin(code, (qs.get('k') || '').trim());
 }
 function netCopyLink() {
     const el = document.getElementById('netLink');
