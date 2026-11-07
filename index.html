@@ -391,7 +391,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 07/11 · 20h · diagnóstico de conexão online</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 07/11 · 20h30 · conexão online com retransmissão</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -2338,6 +2338,18 @@ function netMakeTicker(ms, fn) {
     } catch (e) { const id = setInterval(fn, ms); return { stop() { clearInterval(id); } }; }
 }
 function netStopHb() { if (netHbTimer && netHbTimer.stop) netHbTimer.stop(); netHbTimer = null; }
+// Servidores de ajuda para atravessar roteadores/4G: STUN (descobre o endereço) e TURN (retransmite quando a conexão direta não fecha)
+function netIce(relayOnly) {
+    return {
+        iceServers: [
+            { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:global.stun.twilio.com:3478'] },
+            { urls: ['turn:eu-0.turn.peerjs.com:3478', 'turn:us-0.turn.peerjs.com:3478'], username: 'peerjs', credential: 'peerjsp' },
+            { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turn:openrelay.metered.ca:443?transport=tcp', 'turns:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }
+        ],
+        iceTransportPolicy: relayOnly ? 'relay' : 'all',
+        sdpSemantics: 'unified-plan'
+    };
+}
 let netKeep = null, netDiagLines = [];
 function netDiag(t) {
     netDiagLines.push(new Date().toLocaleTimeString('pt-BR') + ' ' + t); netDiagLines = netDiagLines.slice(-5);
@@ -2440,7 +2452,7 @@ async function netHostStart() {
     }
     const tryOpen = (attempt) => {
         netCode = netRandomCode();
-        const peer = new Peer(NET_PREFIX + netCode, { debug: 0 });
+        const peer = new Peer(NET_PREFIX + netCode, { debug: 0, config: netIce(false) });
         netPeer = peer;
         peer.on('open', () => {
             netDiag('servidor de salas: conectado ✓ (sala ' + netCode + ')');
@@ -2610,7 +2622,8 @@ async function netGuestJoin(code) {
 
 function netGuestCheck() {
     if (netRole !== 'guest' || netCancelled) return;
-    if (!netConn || netConn.open === false || (netGuestStarted && Date.now() - netLastRx > 9000)) netGuestLost('check');
+    if (!netGuestStarted) return;     // ainda entrando: deixa a tentativa em andamento terminar
+    if (!netConn || netConn.open === false || Date.now() - netLastRx > 9000) netGuestLost('check');
 }
 
 function netGuestConnect() {
@@ -2621,14 +2634,16 @@ function netGuestConnect() {
     netTries++;
     let done = false;
     const lost = (why) => { if (done) return; done = true; netGuestLost(why); };
-    const peer = new Peer({ debug: 0 });
+    const relay = netTries >= 3 && netTries % 2 === 1;       // a partir da 3ª tentativa alterna: via servidor de retransmissão
+    netDiag('tentativa ' + netTries + (relay ? ' (forçando retransmissão)' : ''));
+    const peer = new Peer({ debug: 0, config: netIce(relay) });
     netPeer = peer;
     peer.on('error', err => lost((err && err.type) || 'erro'));
     peer.on('open', () => {
         netDiag('servidor de salas: conectado ✓, procurando a sala ' + netCode);
         const conn = peer.connect(NET_PREFIX + netCode, { reliable: true, serialization: 'json', metadata: { tok: netGuestTok } });
         netConn = conn; netWatchIce(conn, 'convidado');
-        const to = setTimeout(() => lost('timeout'), 10000);
+        const to = setTimeout(() => lost('timeout'), 22000);
         conn.on('open', () => {
             netDiag('conectado com o anfitrião ✓');
             clearTimeout(to); netTries = 0; netReconnecting = false; netLastRx = Date.now();
