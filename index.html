@@ -1308,7 +1308,7 @@ function playerDrawFromDeck() {
             if (turnIndex !== 0) return logStatus('Não é a sua vez!');
             if (!hasDrawn) return logStatus('Compre uma carta antes de descartar!');
             if (selectedCards.length !== 1) return logStatus('Selecione exatamente 1 carta para descartar!');
-            if (players[0].hand.length === 1 && deadDecksTaken[0] && !teamHasCleanCanasta(0)) return logStatus('Sem canastra limpa você não pode ficar sem cartas.');
+            if (players[0].hand.length === 1 && (deadDecksTaken[0] || mortoUnavailable()) && !teamHasCleanCanasta(0)) return logStatus('Sem canastra limpa você não pode ficar sem cartas.');
 
             const cardToDiscard = selectedCards[0];
             players[0].hand = players[0].hand.filter(c => c.id !== cardToDiscard.id);
@@ -1441,7 +1441,7 @@ function playerDrawFromDeck() {
                 }
             }
 
-            if (emptyHandPlayer && deadDecksTaken[teamIdx]) {
+            if (emptyHandPlayer && (deadDecksTaken[teamIdx] || mortoUnavailable())) {
                 const hasCleanCanasta = teamMelds[teamIdx].some(m => evaluateCanasta(m).type !== 'DIRTY' && evaluateCanasta(m).isCanasta);
                 if (hasCleanCanasta) {
                     lastHitter = emptyHandPlayer;
@@ -1542,7 +1542,7 @@ function aiMakeCtx(ai, level) {
     }
     return {
         L, level, ai, team: ai.team, penMul, seen, oppMin,
-        mortoTaken: deadDecksTaken[ai.team],
+        mortoTaken: deadDecksTaken[ai.team] || mortoUnavailable(),
         mortoMul: (L.endAware && oppMin <= 3) ? 1.6 : 1,
         wildHold: L.wildHold,
         cache: new Map()
@@ -2081,7 +2081,7 @@ let mortoBy = {};
 let outBlocked = false;
 // Regra: depois de pegar o morto, sem canastra limpa o time não pode ficar sem cartas (e não pode bater).
 function humanOutOK(n, newCards, existingMeld) {
-    if (!deadDecksTaken[0] || players[0].hand.length - n >= 2) return true;
+    if (!(deadDecksTaken[0] || mortoUnavailable()) || players[0].hand.length - n >= 2) return true;
     const melds = teamMelds[0].map(m => (m === existingMeld ? newCards : m.cards));
     if (!existingMeld) melds.push(newCards);
     if (aiTeamHasClean(melds)) return true;
@@ -2104,6 +2104,9 @@ function refillDeckFromDead() {
     showToast('Acabou o monte: um morto virou monte (quem não pegou o morto perde 100)', '');
     return true;
 }
+
+// Sem nenhum morto sobrando (um foi pego e o outro virou monte): esvaziar a mão com canastra limpa é batida.
+function mortoUnavailable() { return deadDecks[0].length === 0 && deadDecks[1].length === 0; }
 
 // ---------- partida até 3.000 / 5.000 + histórico permanente (vitórias e derrotas) ----------
 const HIST_KEY = 'buraco_historico_telasdopassado_v1';
@@ -2217,7 +2220,7 @@ let mortoSeat = {};
 let lastPlayText = '';
 let aiSkipDraw = false;
 let netCode = '';
-let netLastSent = '', netLastGot = '';
+let netLastSent = '', netLastGot = '', netStateCount = 0;
 let netLastRx = 0, netHbTimer = null;      // batimento: detecta queda em ~12 s
 let netGuestTok = '', netHostTok = '';       // identifica o mesmo convidado ao voltar
 let netReconnecting = false, netRetryTimer = null, netTries = 0, netCancelled = false;
@@ -2227,6 +2230,7 @@ function netStartHeartbeat(onDead) {
     netLastRx = Date.now();
     netHbTimer = setInterval(() => {
         netSend({ t: 'ping', ts: Date.now() });
+        if (netRole === 'host' && netGuestConnected) { netLastSent = ''; netBroadcast(); }
         if (Date.now() - netLastRx > 12000) onDead();
     }, 4000);
 }
@@ -2384,6 +2388,7 @@ function netPingIn(m) {
 function netHostOnData(m) {
     netLastRx = Date.now();
     if (m && (m.t === 'ping' || m.t === 'pong')) return netPingIn(m);
+    if (m && m.t === 'sync') { netLastSent = ''; netBroadcast(); return; }
     if (!m || m.t !== 'cmd') return;
     netRunCmd(m);
 }
@@ -2516,6 +2521,8 @@ function netGuestLost(why) {
 function netCmd(c, extra) {
     if (turnIndex !== 0) return logStatus('Não é a sua vez!');
     netSend(Object.assign({ t: 'cmd', c, ids: selectedCards.map(x => x.id) }, extra || {}));
+    const seen = netStateCount;
+    setTimeout(() => { if (netStateCount === seen) netSend({ t: 'sync' }); }, 1500);
 }
 function netInstallGuestActions() {
     playerDrawFromDeck = () => { if (rodadaEncerrada) return; if (turnIndex !== 0) return logStatus('Não é a sua vez!'); if (hasDrawn) return logStatus('Você já comprou nesta rodada!'); netCmd('deck'); };
@@ -2531,10 +2538,11 @@ function netGuestOnData(m) {
     if (!m) return;
     if (m.t === 'msg') return logStatus(m.text);
     if (m.t === 'state') {
+        netStateCount++;
         const raw = m.raw || JSON.stringify(m.s);
         if (raw === netLastGot) return;
-        netLastGot = raw;
         netApply(m.raw ? JSON.parse(m.raw) : m.s);
+        netLastGot = raw;
     }
 }
 
