@@ -110,6 +110,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .menu-card{margin-top:18px;text-align:left;padding:20px;border-radius:22px;background:linear-gradient(180deg,rgba(18,32,24,.9),rgba(8,16,12,.9));border:1px solid rgba(233,185,73,.4);box-shadow:0 20px 50px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.6) inset;backdrop-filter:blur(6px)}
 .menu-card label{display:block;font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--gold);margin:0 0 8px}
 .seg{display:grid;gap:8px;margin-bottom:18px}
+.seg.c4{grid-template-columns:repeat(4,1fr)}.seg.c4 button{padding:10px 4px;font-size:13px}
 .seg.c2{grid-template-columns:1fr 1fr}.seg.c3{grid-template-columns:repeat(3,1fr)}
 .seg button{padding:12px 8px;border-radius:12px;background:#10201a;border:1px solid #2c4a39;font-weight:700;font-size:14px;color:#cfe0d4;transition:.15s}
 .seg button small{display:block;font-weight:500;font-size:10.5px;color:var(--muted);margin-top:2px}
@@ -349,6 +350,15 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
     <div class="hero-cards" id="heroCards" aria-hidden="true"></div>
 
+    <div id="resumeCard" class="menu-card hidden" style="margin-bottom:14px;border-color:#e9b949">
+      <label>PARTIDA EM ANDAMENTO</label>
+      <p id="resumeInfo" style="margin:4px 0 12px;font-size:14px;color:#e6efe8"></p>
+      <div class="seg c2" style="margin-bottom:0">
+        <button onclick="resumeMatch()" class="active">Continuar</button>
+        <button onclick="discardResume()">Descartar</button>
+      </div>
+    </div>
+
     <div class="menu-card">
       <label>MODALIDADE</label>
       <div class="seg c2">
@@ -363,8 +373,10 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
       </div>
       <label>PARTIDA ATÉ</label>
       <div class="seg c2">
-        <button id="btnTarget3000" onclick="setTarget(3000)" class="active">3.000<small>partida mais curta</small></button>
+        <button id="btnTarget0" onclick="setTarget(0)">Queda única<small>só uma rodada</small></button>
+        <button id="btnTarget3000" onclick="setTarget(3000)" class="active">3.000<small>partida curta</small></button>
         <button id="btnTarget5000" onclick="setTarget(5000)">5.000<small>partida longa</small></button>
+        <button id="btnTarget10000" onclick="setTarget(10000)">10.000<small>maratona</small></button>
       </div>
       <button class="play-btn" onclick="startGame()">JOGAR</button>
       <button class="friend-btn" onclick="netHostStart()">👥 Jogar com um amigo (online)</button>
@@ -379,7 +391,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 07/11 · 17h · monte acabou = morto vira monte · sons</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 07/11 · 19h · metas 3k/5k/10k · continuar partida (solo e online)</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -495,9 +507,11 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
     <p id="netMsg" class="sub"></p>
     <div id="netSetup" class="hidden">
       <label style="display:block;font-size:11px;letter-spacing:.08em;color:var(--muted);margin:6px 0 6px">PARTIDA ATÉ</label>
-      <div class="seg c2" style="margin-bottom:10px">
+      <div class="seg c4" style="margin-bottom:10px">
+        <button data-nt="0" onclick="netPick('t',0)">1 queda</button>
         <button data-nt="3000" onclick="netPick('t',3000)">3.000</button>
         <button data-nt="5000" onclick="netPick('t',5000)">5.000</button>
+        <button data-nt="10000" onclick="netPick('t',10000)">10.000</button>
       </div>
       <label style="display:block;font-size:11px;letter-spacing:.08em;color:var(--muted);margin:0 0 6px">NÍVEL DA IA</label>
       <div class="seg c3" style="margin-bottom:12px">
@@ -671,6 +685,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setAILevel('medium');
     loadTarget();
     renderHistory();
+    renderResume();
     window.addEventListener('resize', () => {
         if (players.length && !document.getElementById('game').classList.contains('hidden')) renderHand();
     });
@@ -722,6 +737,7 @@ window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('game').classList.add('hidden');
             document.getElementById('landing').classList.remove('hidden');
             renderHistory();
+            renderResume();
         }
 
         function createDeck() {
@@ -762,8 +778,10 @@ window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('landing').classList.add('hidden');
             document.getElementById('game').classList.remove('hidden');
             document.getElementById('scoreSummaryModal').classList.add('hidden');
-            gameScores = [0, 0];
+            gameScores = pendingScores ? pendingScores.slice() : [0, 0];
+            pendingScores = null;
             matchRecorded = false;
+            if (!netRole) matchClearSave();
             startNextRound();
         }
 
@@ -2152,6 +2170,7 @@ const TARGET_KEY = 'buraco_meta_v1';
 let targetScore = 3000;
 let matchRecorded = false;
 let histMem = null;
+let pendingScores = null;   // placar a retomar quando o amigo entrar numa sala online
 
 function histLoad() {
     try {
@@ -2165,21 +2184,59 @@ function histSave(h) {
     try { localStorage.setItem(HIST_KEY, JSON.stringify(h)); } catch (e) { }
 }
 
+const TARGETS = [0, 3000, 5000, 10000];   // 0 = queda única (uma rodada só)
+function targetLabel(n) { return n === 0 ? 'Queda única' : 'Meta ' + n.toLocaleString('pt-BR'); }
 function setTarget(n) {
-    targetScore = n === 5000 ? 5000 : 3000;
-    ['3000', '5000'].forEach(v => {
+    targetScore = TARGETS.includes(n) ? n : 3000;
+    TARGETS.forEach(v => {
         const b = document.getElementById('btnTarget' + v);
-        if (b) b.classList.toggle('active', Number(v) === targetScore);
+        if (b) b.classList.toggle('active', v === targetScore);
     });
     const badge = document.getElementById('targetBadge');
-    if (badge) badge.innerText = 'Meta ' + targetScore.toLocaleString('pt-BR');
+    if (badge) badge.innerText = targetLabel(targetScore);
     try { localStorage.setItem(TARGET_KEY, String(targetScore)); } catch (e) { }
 }
 function loadTarget() {
     let n = 3000;
-    try { n = parseInt(localStorage.getItem(TARGET_KEY)) === 5000 ? 5000 : 3000; } catch (e) { }
+    try { const v = parseInt(localStorage.getItem(TARGET_KEY)); n = TARGETS.includes(v) ? v : 3000; } catch (e) { }
     setTarget(n);
 }
+
+// ---------- partida em andamento (guardada entre as quedas; só no jogo solo) ----------
+const SAVE_KEY = 'buraco_partida_andamento_v1';
+function matchSave() {
+    if (netRole === 'guest' || targetScore === 0) return;     // solo e anfitrião guardam; o convidado não
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ mode: gameMode, level: aiLevel, target: targetScore, scores: gameScores.slice(), online: netRole === 'host', t: Date.now() })); } catch (e) { }
+}
+function matchClearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } renderResume(); }
+function matchLoadSave() {
+    try {
+        const s = JSON.parse(localStorage.getItem(SAVE_KEY));
+        if (s && TARGETS.includes(s.target) && s.target > 0 && Array.isArray(s.scores) && s.scores.length === 2) return s;
+    } catch (e) { }
+    return null;
+}
+function renderResume() {
+    const card = document.getElementById('resumeCard'); if (!card) return;
+    const s = matchLoadSave();
+    card.classList.toggle('hidden', !s);
+    if (!s) return;
+    const lvl = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
+    const f = n => n.toLocaleString('pt-BR');
+    document.getElementById('resumeInfo').innerText = `Meta ${f(s.target)} · ${s.online ? '👥 online 2×2' : (s.mode === '2x2' ? '2×2' : '1×1')} · IA ${lvl[s.level] || ''} · Placar ${f(s.scores[0])} × ${f(s.scores[1])}`;
+}
+function resumeMatch() {
+    const s = matchLoadSave(); if (!s) return renderResume();
+    setGameMode(s.mode); setAILevel(s.level); setTarget(s.target);
+    if (s.online) { pendingScores = s.scores.slice(); return netHostStart(); }   // cria a sala; a partida começa quando o amigo entrar
+    document.getElementById('landing').classList.add('hidden');
+    document.getElementById('game').classList.remove('hidden');
+    document.getElementById('scoreSummaryModal').classList.add('hidden');
+    gameScores = s.scores.slice();
+    matchRecorded = false;
+    startNextRound();
+}
+function discardResume() { matchClearSave(); }
 
 function recordMatch(winner) {
     if (matchRecorded) return;
@@ -2215,20 +2272,29 @@ function renderHistory() {
 // Chamado ao fim de cada queda (placar geral já atualizado). Devolve true se a partida acabou.
 function matchCheck() {
     const a = gameScores[0], b = gameScores[1];
-    const reached = a >= targetScore || b >= targetScore;
-    const over = reached && a !== b;
+    const single = targetScore === 0;
+    const reached = single || a >= targetScore || b >= targetScore;
+    const over = single ? true : (reached && a !== b);
+    const tie = single && a === b;
     const winner = a > b ? 0 : 1;
     const btn = document.getElementById('btnNextRound'), eb = document.getElementById('endNextBtn');
     const sub = document.getElementById('summarySubtitle'), note = document.getElementById('summaryNote'), title = document.getElementById('summaryTitle');
     const fmt = n => n.toLocaleString('pt-BR');
     if (over) {
-        recordMatch(winner);
         const nosTxt = gameMode === '2x2' ? 'SUA EQUIPE' : 'VOCÊ';
-        title.innerText = winner === 0 ? `${nosTxt} VENCEU A PARTIDA!` : `${nosTxt} PERDEU A PARTIDA`;
-        if (sub) sub.innerText = `Placar final: ${fmt(a)} × ${fmt(b)} (meta ${fmt(targetScore)}). Salvo no seu histórico.`;
+        if (single) {
+            title.innerText = tie ? 'QUEDA EMPATADA' : (winner === 0 ? `${nosTxt} VENCEU A QUEDA!` : `${nosTxt} PERDEU A QUEDA`);
+            if (sub) sub.innerText = `Queda única: ${fmt(a)} × ${fmt(b)}. Não entra no histórico de partidas.`;
+        } else {
+            recordMatch(winner);
+            matchClearSave();
+            title.innerText = winner === 0 ? `${nosTxt} VENCEU A PARTIDA!` : `${nosTxt} PERDEU A PARTIDA`;
+            if (sub) sub.innerText = `Placar final: ${fmt(a)} × ${fmt(b)} (meta ${fmt(targetScore)}). Salvo no seu histórico.`;
+        }
         if (btn) { btn.innerText = 'Nova partida'; btn.onclick = startGame; }
         if (eb) { eb.innerText = 'Nova partida'; eb.onclick = startGame; }
     } else {
+        matchSave();
         if (sub) sub.innerText = `Meta da partida: ${fmt(targetScore)} · Nós ${fmt(a)} × Eles ${fmt(b)}`;
         if (btn) { btn.innerText = 'Próxima queda'; btn.onclick = startNextRound; }
         if (eb) { eb.innerText = 'Próxima queda'; eb.onclick = startNextRound; }
@@ -2350,7 +2416,7 @@ async function netHostStart() {
         netPeer = peer;
         peer.on('open', () => {
             const link = location.origin + location.pathname + '?sala=' + netCode;
-            netShow('Sala criada: ' + netCode, 'Mande este link para o seu amigo. Quando ele entrar, a partida começa. Ele joga como seu parceiro contra 2 adversários da IA.', { link });
+            netShow('Sala criada: ' + netCode, 'Mande este link para o seu amigo. Quando ele entrar, a partida começa' + (pendingScores ? ' de onde pararam (' + pendingScores[0] + ' × ' + pendingScores[1] + ')' : '') + '. Ele joga como seu parceiro contra 2 adversários da IA.', { link });
         });
         peer.on('connection', conn => netHostOnConn(conn));
         peer.on('error', err => {
@@ -2597,7 +2663,7 @@ function netApply(S) {
     }
     aiLevel = S.level; targetScore = S.target;
     const lb = document.getElementById('aiLevelBadge'); if (lb) lb.innerText = 'IA: ' + (AI_LEVELS[aiLevel] ? AI_LEVELS[aiLevel].label : '');
-    const tb = document.getElementById('targetBadge'); if (tb) tb.innerText = 'Meta ' + targetScore.toLocaleString('pt-BR');
+    const tb = document.getElementById('targetBadge'); if (tb) tb.innerText = targetLabel(targetScore);
 
     if (S.round !== netRoundSeen) {
         const fresh = netRoundSeen === -1;
