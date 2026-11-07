@@ -212,6 +212,15 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .toast{position:fixed;left:50%;top:47%;transform:translateX(-50%);z-index:95;max-width:min(92vw,420px);padding:11px 18px;border-radius:14px;font-weight:800;font-size:14px;text-align:center;color:#fff;background:#9f1239;border:2px solid #fda4af;box-shadow:0 14px 40px rgba(0,0,0,.7);animation:toastIn .3s ease-out}
 .toast.good{background:#047857;border-color:#6ee7b7}.toast.gold{background:#8a5a0a;border-color:#ffe39a}
 @keyframes toastIn{from{opacity:0;transform:translate(-50%,-14px)}}
+.bat-banner{position:fixed;inset:0;z-index:97;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);pointer-events:none;animation:bbFade .25s ease-out}
+.bb-card{text-align:center;padding:22px 34px;border-radius:20px;border:3px solid #ffe39a;background:linear-gradient(180deg,#0f2a1c,#08150e);box-shadow:0 20px 70px rgba(0,0,0,.8),0 0 60px rgba(233,185,73,.35);animation:bbPop .45s cubic-bezier(.2,1.4,.4,1)}
+.bb-card.them{border-color:#fda4af;box-shadow:0 20px 70px rgba(0,0,0,.8),0 0 60px rgba(244,63,94,.3)}
+.bb-ico{font-size:46px;line-height:1}
+.bb-txt{font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:clamp(26px,7vw,44px);color:#ffd36b;letter-spacing:.03em;margin-top:6px;text-shadow:0 3px 0 rgba(0,0,0,.5)}
+.bb-card.them .bb-txt{color:#ff9fb2}
+.bb-sub{margin-top:6px;font-size:14px;color:#cfe0d4;font-weight:600}
+@keyframes bbPop{from{transform:scale(.6);opacity:0}}
+@keyframes bbFade{from{opacity:0}}
 .endbar{position:fixed;left:0;right:0;bottom:0;z-index:85;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(7,16,11,.92),#050b08);border-top:2px solid var(--gold)}
 .endbar .et{font-weight:800;font-size:13px;color:var(--gold-hi)}
 .endbar button{padding:10px 16px;border-radius:11px;font-weight:800;font-size:13px;border:1px solid}
@@ -479,6 +488,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 </div>
 
 <div id="toast" class="toast hidden"></div>
+<div id="batBanner" class="bat-banner hidden"><div class="bb-card"><div class="bb-ico">🏆</div><div id="batBannerText" class="bb-txt"></div><div id="batBannerSub" class="bb-sub"></div></div></div>
 <div id="netModal" class="modal hidden" style="z-index:96">
   <div class="sheet">
     <h3 id="netTitle">Jogar com amigo</h3>
@@ -771,7 +781,7 @@ function startNextRound() {
             roundScores = [0, 0];
             lastDrawnCardId = null;
             rodadaEncerrada = false;
-            roundScored = false; lastCounts = {}; aiKnown = {}; aiEmptyDeckPileTakes = 0; aiPileStreak = 0; lastHitter = null; mortoBy = {}; mortoSeat = {}; setLastPlay('');
+            roundScored = false; lastCounts = {}; aiKnown = {}; aiEmptyDeckPileTakes = 0; aiPileStreak = 0; lastHitter = null; mortoBy = {}; mortoSeat = {}; deadRefills = 0; setLastPlay('');
             document.getElementById('endBar').classList.add('hidden');
 
             players = [
@@ -1418,7 +1428,9 @@ function playerDrawFromDeck() {
 
             aiSummaryExtras(winnerTeamIdx, lastHitter);
             matchCheck();
-            document.getElementById('scoreSummaryModal').classList.remove('hidden');
+            let __bd = 0;
+            if (winnerTeamIdx !== -1) { const __hw = lastHitter ? (lastHitter.id === 0 ? 'VOCÊ' : seatLabel(lastHitter).toUpperCase()) : (winnerTeamIdx === 0 ? 'NOSSA EQUIPE' : 'ADVERSÁRIOS'); __bd = showBatBanner(__hw, winnerTeamIdx === 0, winnerTeamIdx === 0 ? 'Parabéns! Canastra limpa e mão vazia.' : 'Eles ficaram sem cartas com canastra limpa.'); }
+            setTimeout(() => { if (rodadaEncerrada) document.getElementById('scoreSummaryModal').classList.remove('hidden'); }, __bd);
             updateUI();
         }
 
@@ -2056,10 +2068,21 @@ function aiSummaryExtras(winnerTeamIdx, hitter) {
             const lo = a.minVal === 1 ? 'A' : getCardLabel(a.minVal), hi = getCardLabel(a.maxVal);
             canastaTxt = `${evaluateCanasta(clean).label.replace(/ \(.*/, '')} ${a.suit} de ${lo} a ${hi} (${clean.cards.length} cartas, sem curinga)`;
         }
-        msg = `<b>${who}</b> bateu: ficou sem cartas, já tinha pego o morto e a equipe tem <b>${canastaTxt}</b>. Bônus de batida: +100.`;
+        let listTxt = '';
+        if (clean) {
+            const an = analyzeMeld(clean.cards), lowA = an.minVal === 1;
+            const ord = clean.cards.slice().sort((x, y) => (lowA && x.value === 14 ? 1 : x.value) - (lowA && y.value === 14 ? 1 : y.value));
+            listTxt = `<br><small>Cartas da canastra: ${ord.map(c => getCardLabel(c.value) + c.suit).join(' ')}</small>`;
+        }
+        msg = `<b>${who}</b> bateu: ficou sem cartas, já tinha pego o morto e a equipe tem <b>${canastaTxt}</b>. Bônus de batida: +100.${listTxt}`;
     } else {
         msg = '<b>Monte vazio:</b> ninguém bateu. A queda foi encerrada e cada time perde os pontos das cartas que sobraram na mão.';
     }
+    const dn = [];
+    if (deadRefills > 0) dn.push(`O monte acabou e <b>${deadRefills}</b> morto${deadRefills > 1 ? 's viraram' : ' virou'} monte.`);
+    const left = deadDecks[0].length + deadDecks[1].length;
+    if (left > 0) dn.push(`<b>${left}</b> morto${left > 1 ? 's ficaram' : ' ficou'} na mesa sem ser pego${left > 1 ? 's' : ''}.`);
+    if (dn.length) msg += '<br>' + dn.join(' ');
     if (note) { note.innerHTML = msg; note.classList.remove('hidden'); }
     const bt = document.getElementById('endBarText');
     if (bt) bt.innerText = byBat ? `${hitter ? seatLabel(hitter) : 'Equipe'} bateu!` : 'Monte vazio — queda encerrada';
@@ -2080,6 +2103,7 @@ function showSummary() {
 }
 
 let mortoBy = {};
+let deadRefills = 0;
 let outBlocked = false;
 // Regra: depois de pegar o morto, sem canastra limpa o time não pode ficar sem cartas (e não pode bater).
 function humanOutOK(n, newCards, existingMeld) {
@@ -2101,6 +2125,7 @@ function refillDeckFromDead() {
     if (idx < 0) return false;
     deck = deadDecks[idx];
     deadDecks[idx] = [];
+    deadRefills++;
     const left = (deadDecks[0].length > 0 ? 1 : 0) + (deadDecks[1].length > 0 ? 1 : 0);
     logStatus('O monte acabou: um morto virou o novo monte!');
     showToast('Acabou o monte: um morto virou monte (quem não pegou o morto perde 100)', '');
@@ -2109,6 +2134,17 @@ function refillDeckFromDead() {
 
 // Sem nenhum morto sobrando (um foi pego e o outro virou monte): esvaziar a mão com canastra limpa é batida.
 function mortoUnavailable() { return deadDecks[0].length === 0 && deadDecks[1].length === 0; }
+
+// Aviso grande na mesa quando alguém bate; o resultado abre logo depois.
+function showBatBanner(who, mine, sub) {
+    const b = document.getElementById('batBanner'); if (!b) return 0;
+    document.getElementById('batBannerText').innerText = who + ' BATEU!';
+    document.getElementById('batBannerSub').innerText = sub || '';
+    b.querySelector('.bb-card').classList.toggle('them', !mine);
+    b.classList.remove('hidden');
+    setTimeout(() => b.classList.add('hidden'), 2300);
+    return 2300;
+}
 
 // ---------- partida até 3.000 / 5.000 + histórico permanente (vitórias e derrotas) ----------
 const HIST_KEY = 'buraco_historico_telasdopassado_v1';
@@ -2440,7 +2476,7 @@ function netSnapshot() {
         deck: deck.length, dead: [deadDecks[0].length, deadDecks[1].length],
         pile: discardPile, melds: teamMelds,
         players: players.map((p, i) => ({ team: p.team, n: p.hand.length, hand: (i === 2 || ended) ? p.hand : null })),
-        lastPlay: lastPlayText
+        lastPlay: lastPlayText, refills: deadRefills
     };
 }
 function netBroadcast() {
@@ -2590,7 +2626,7 @@ function netApply(S) {
     mortoBy = {};
     Object.keys(S.mortoSeat || {}).forEach(t => { mortoBy[t] = seatLabel(players[(S.mortoSeat[t] - 2 + 4) % 4]); });
     selectedCards = selectedCards.map(c => players[0].hand.find(h => h.id === c.id)).filter(Boolean);
-    setLastPlay(S.lastPlay);
+    setLastPlay(S.lastPlay); deadRefills = S.refills || 0;
     document.getElementById('gameModeBadge').innerText = '2x2';
     [0, 1].forEach(tm => {
         const el = document.getElementById(tm === 0 ? 'roundScoreTeam1' : 'roundScoreTeam2');
@@ -2623,7 +2659,10 @@ function netShareWhats() {
 
 // transmite o estado depois de cada redesenho (apenas no anfitrião)
 const __netOrigUpdateUI = updateUI;
-updateUI = function () { __netOrigUpdateUI.apply(this, arguments); if (netRole === 'host' && !netBusy) netBroadcast(); };
+updateUI = function () {
+    // proteção: monte vazio com morto sobrando => o morto vira monte (não vale no convidado, que só espelha)
+    if (netRole !== 'guest' && !rodadaEncerrada && players.length && deck.length === 0 && typeof refillDeckFromDead === 'function') refillDeckFromDead();
+    __netOrigUpdateUI.apply(this, arguments); if (netRole === 'host' && !netBusy) netBroadcast(); };
 window.addEventListener('DOMContentLoaded', netBoot);
 
 // =====================================================================
