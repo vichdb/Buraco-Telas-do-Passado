@@ -391,7 +391,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 07/11 · 19h · metas 3k/5k/10k · continuar partida (solo e online)</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 07/11 · 20h · diagnóstico de conexão online</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -520,6 +520,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
         <button data-nl="hard" onclick="netPick('l','hard')">Difícil</button>
       </div>
     </div>
+    <div id="netDiag" style="font-size:11px;line-height:1.5;color:var(--muted);margin:8px 0 10px;text-align:left;white-space:pre-line"></div>
     <div id="netLinkBox" class="hidden">
       <input id="netLink" class="netinp" readonly>
       <div class="row2">
@@ -2329,14 +2330,41 @@ let netLastRx = 0, netHbTimer = null;      // batimento: detecta queda em ~12 s
 let netGuestTok = '', netHostTok = '';       // identifica o mesmo convidado ao voltar
 let netReconnecting = false, netRetryTimer = null, netTries = 0, netCancelled = false;
 
+function netMakeTicker(ms, fn) {
+    try {
+        const url = URL.createObjectURL(new Blob(['setInterval(function(){postMessage(1)},' + ms + ')'], { type: 'text/javascript' }));
+        const w = new Worker(url); w.onmessage = fn;
+        return { stop() { try { w.terminate(); URL.revokeObjectURL(url); } catch (e) { } } };
+    } catch (e) { const id = setInterval(fn, ms); return { stop() { clearInterval(id); } }; }
+}
+function netStopHb() { if (netHbTimer && netHbTimer.stop) netHbTimer.stop(); netHbTimer = null; }
+let netKeep = null, netDiagLines = [];
+function netDiag(t) {
+    netDiagLines.push(new Date().toLocaleTimeString('pt-BR') + ' ' + t); netDiagLines = netDiagLines.slice(-5);
+    const el = document.getElementById('netDiag'); if (el) el.innerText = 'Diagnóstico:\n' + netDiagLines.join('\n');
+}
+function netWatchIce(conn, who) {
+    try {
+        const pc = conn.peerConnection; if (!pc) return;
+        pc.addEventListener('iceconnectionstatechange', () => netDiag(who + ' ICE: ' + pc.iceConnectionState));
+        pc.addEventListener('connectionstatechange', () => netDiag(who + ' conexão: ' + pc.connectionState));
+    } catch (e) { }
+}
+function netStartKeepAlive() {
+    if (netKeep) netKeep.stop();
+    netKeep = netMakeTicker(4000, () => {
+        const p = netPeer; if (!p || p.destroyed) return;
+        try { if (p.disconnected) p.reconnect(); else if (p.socket && p.socket._wsOpen && p.socket._wsOpen()) p.socket.send({ type: 'HEARTBEAT' }); } catch (e) { }
+    });
+}
 function netStartHeartbeat(onDead) {
-    clearInterval(netHbTimer);
+    netStopHb();
     netLastRx = Date.now();
-    netHbTimer = setInterval(() => {
+    netHbTimer = netMakeTicker(4000, () => {
         netSend({ t: 'ping', ts: Date.now() });
         if (netRole === 'host' && netGuestConnected) { netLastSent = ''; netBroadcast(); }
         if (Date.now() - netLastRx > 12000) onDead();
-    }, 4000);
+    });
 }
 
 function setLastPlay(t) {
@@ -2393,7 +2421,7 @@ function netShutdown() {
     try { if (netConn) netConn.close(); } catch (e) { }
     try { if (netPeer) netPeer.destroy(); } catch (e) { }
     netConn = null; netPeer = null; netGuestConnected = false;
-    clearTimeout(netBcTimer); clearInterval(netHbTimer); clearTimeout(netRetryTimer);
+    clearTimeout(netBcTimer); netStopHb(); clearTimeout(netRetryTimer); if (netKeep) { netKeep.stop(); netKeep = null; }
 }
 function netCancel() { netCancelled = true; netShutdown(); location.href = location.pathname; }
 
@@ -2415,15 +2443,18 @@ async function netHostStart() {
         const peer = new Peer(NET_PREFIX + netCode, { debug: 0 });
         netPeer = peer;
         peer.on('open', () => {
+            netDiag('servidor de salas: conectado ✓ (sala ' + netCode + ')');
+            netStartKeepAlive();
             const link = location.origin + location.pathname + '?sala=' + netCode;
             netShow('Sala criada: ' + netCode, 'Mande este link para o seu amigo. Quando ele entrar, a partida começa' + (pendingScores ? ' de onde pararam (' + pendingScores[0] + ' × ' + pendingScores[1] + ')' : '') + '. Ele joga como seu parceiro contra 2 adversários da IA.', { link });
         });
-        peer.on('connection', conn => netHostOnConn(conn));
+        peer.on('connection', conn => { netDiag('amigo bateu na porta ✓'); netWatchIce(conn, 'anfitrião'); netHostOnConn(conn); });
         peer.on('error', err => {
             if (err && err.type === 'unavailable-id' && attempt < 3) { try { peer.destroy(); } catch (e) { } return tryOpen(attempt + 1); }
+            netDiag('erro do servidor: ' + ((err && err.type) || err));
             netShow('Erro na conexão', 'Não foi possível criar a sala (' + ((err && err.type) || 'erro') + '). Tente de novo.', {});
         });
-        peer.on('disconnected', () => { try { peer.reconnect(); } catch (e) { } });
+        peer.on('disconnected', () => { netDiag('servidor de salas: desconectou, reconectando…'); try { peer.reconnect(); } catch (e) { } });
     };
     tryOpen(0);
 }
@@ -2470,7 +2501,7 @@ function netGuestLeft(conn) {
     if (!netGuestConnected) return;
     netGuestConnected = false;
     try { if (netConn) netConn.close(); } catch (e) { }
-    netConn = null; clearInterval(netHbTimer);
+    netConn = null; netStopHb();
     if (players.length === 4 && players[2]) {
         players[2].isHuman = false;
         showToast('Seu amigo caiu: a IA joga por ele até ele voltar (pelo mesmo link).', '');
@@ -2594,10 +2625,12 @@ function netGuestConnect() {
     netPeer = peer;
     peer.on('error', err => lost((err && err.type) || 'erro'));
     peer.on('open', () => {
+        netDiag('servidor de salas: conectado ✓, procurando a sala ' + netCode);
         const conn = peer.connect(NET_PREFIX + netCode, { reliable: true, serialization: 'json', metadata: { tok: netGuestTok } });
-        netConn = conn;
+        netConn = conn; netWatchIce(conn, 'convidado');
         const to = setTimeout(() => lost('timeout'), 10000);
         conn.on('open', () => {
+            netDiag('conectado com o anfitrião ✓');
             clearTimeout(to); netTries = 0; netReconnecting = false; netLastRx = Date.now();
             netStartHeartbeat(() => lost('hb'));
             if (netGuestStarted) netHide(); else netShow('Conectado!', 'Aguardando o anfitrião começar a partida…');
@@ -2610,14 +2643,15 @@ function netGuestConnect() {
 
 function netGuestLost(why) {
     if (netRole !== 'guest' || netCancelled) return;
-    clearInterval(netHbTimer);
-    const limit = netGuestStarted ? 200 : 6;          // depois de entrar, insiste por ~10 min
+    netDiag('falhou: ' + why);
+    netStopHb();
+    const limit = netGuestStarted ? 200 : 40;          // depois de entrar, insiste por ~10 min
     if (netTries >= limit) {
         return netShow('Não deu para entrar', 'Sala não encontrada ou o anfitrião saiu. Peça para ele conferir se a tela dele continua aberta e mande o link de novo.', {});
     }
     netReconnecting = true;
     netShow(netGuestStarted ? 'Reconectando…' : 'Entrando na sala ' + netCode + '…',
-        netGuestStarted ? 'A conexão caiu. Tentando voltar para a mesma partida (tentativa ' + netTries + ')…' : 'Tentando conectar ao anfitrião (' + netTries + ')…');
+        netGuestStarted ? 'A conexão caiu. Tentando voltar para a mesma partida (tentativa ' + netTries + ')…' : 'Procurando a sala… (' + netTries + '). Se demorar, peça um link novo: quem criou a sala precisa deixar a aba do jogo aberta e, se atualizou a página, a sala antiga deixa de existir.');
     clearTimeout(netRetryTimer);
     netRetryTimer = setTimeout(netGuestConnect, 2500);
 }
