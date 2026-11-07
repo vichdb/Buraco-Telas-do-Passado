@@ -1,0 +1,1 @@
+Buraco é um  jogo de cartas muito difundido no brasil nas decadas de 60 e 70 que é jogado até hoje em reunioes de familias e amigos. Objetivo é fazer o maior numero de pontos possiveis dentro de uma partida.
