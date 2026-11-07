@@ -504,7 +504,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
       <li><b>Jogos:</b> só sequências do mesmo naipe, com 3 cartas ou mais. O Ás vale 1 ou 14 (A-2-3 ou Q-K-A).</li>
       <li><b>Curinga:</b> só o 2, de qualquer naipe, no máximo 1 por jogo. O 2 do mesmo naipe na posição natural (A-2-3, 2-3-4) não é curinga.</li>
       <li><b>Canastra limpa:</b> 7+ cartas sem curinga, 200 pontos. <b>Suja:</b> 7+ cartas com curinga, 100 pontos.</li>
-      <li><b>Canastra de 500:</b> sequência limpa do 5 ao Rei. <b>Real:</b> Ás ao Ás com 14 cartas, 1.000 pontos.</li>
+      <li><b>Canastra de 500:</b> sequência limpa de 13 cartas (2 ao Ás ou Ás ao Rei). <b>Real:</b> Ás ao Ás com 14 cartas, 1.000 pontos.</li>
       <li><b>Lixo aberto:</b> você pode comprar do monte ou levar o lixo inteiro, e depois descarta uma carta.</li>
       <li><b>Morto:</b> cada time tem um morto de 11 cartas, pego quando a mão esvazia. Sem pegar o morto, são −100 pontos.</li>
       <li><b>Batida:</b> exige ter pego o morto e ter ao menos uma canastra limpa (sem curinga). Quem bate ganha +100. Sem canastra limpa você não pode ficar sem cartas.</li>
@@ -1189,7 +1189,7 @@ function playerDrawFromDeck() {
 
             if (!hasWildcard) {
                 if (count === 14) return { isCanasta: true, type: 'REAL', label: 'Canastra Real (1000)' };
-                if (a.valid && a.minVal === 5 && a.maxVal === 13) return { isCanasta: true, type: 'FIVE_TO_KING', label: 'Canastra de 500' };
+                if (count === 13) return { isCanasta: true, type: 'FIVE_TO_KING', label: 'Canastra de 500' };
                 return { isCanasta: true, type: 'CLEAN', label: 'Canastra Limpa (200)' };
             }
             return { isCanasta: true, type: 'DIRTY', label: 'Canastra Suja (100)' };
