@@ -160,6 +160,23 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .score .num{font-size:20px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
 .score .sub{font-size:10px;font-weight:500;color:var(--muted)}
 .tb-btn{padding:6px 11px;border-radius:9px;background:#1a2c21;border:1px solid #35553f;font-size:11.5px;font-weight:700;color:#d8e6dc}
+.who{display:block;font-size:10.5px;font-weight:700;opacity:.92}
+.fd{background:#4a2410;border:1px solid #c0602b;color:#ffd9bd;font-size:12px;font-weight:600;padding:5px 9px;border-radius:8px;margin:4px 0;text-align:center}
+.tb-btn.off{opacity:.45}
+@media(max-width:480px){.topbar{gap:6px}.tb-btn{padding:6px 8px}#fastBtn,#hintBtn,#soundBtn{padding:6px 7px}}
+.steps{display:flex;gap:6px;justify-content:center;margin:0 0 7px;font-size:11px;font-weight:700}
+.steps span{padding:3px 9px;border-radius:99px;background:#10201a;border:1px solid #2c4a39;color:#7f9a88;transition:.15s}
+.steps span.on{background:linear-gradient(180deg,#f6cf63,#c8921f);border-color:#ffe39a;color:#2a1a02;box-shadow:0 0 12px rgba(233,185,73,.45)}
+.steps span.done{color:#9fd2ae;border-color:#3d6b4c}
+.btn.dim{opacity:.38;filter:saturate(.5)}
+.pile.nudge{animation:nudge 1.1s ease-in-out infinite}
+@keyframes nudge{50%{box-shadow:0 0 0 4px rgba(233,185,73,.55),0 0 22px rgba(233,185,73,.5)}}
+.hh{font-size:11.5px;line-height:1.4;color:#ffe9a8;background:rgba(233,185,73,.1);border:1px solid rgba(233,185,73,.35);border-radius:9px;padding:4px 9px;margin:0 0 6px;text-align:center}
+.card.near{box-shadow:0 0 0 2px rgba(233,185,73,.85)}
+body.fast .card.fly-in{animation-duration:.18s}
+body.fast .card.pop{animation-duration:.14s}
+body.fast .toast,body.fast .bb-card{animation-duration:.12s}
+body.fast *{transition-duration:.06s!important}
 .tb-btn:hover{border-color:var(--gold);color:var(--gold)}
 
 .table{
@@ -371,6 +388,13 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
         <button id="btnAiMedium" onclick="setAILevel('medium')" class="active">Médio</button>
         <button id="btnAiHard" onclick="setAILevel('hard')">Difícil</button>
       </div>
+      <label>ESTILO DOS ADVERSÁRIOS</label>
+      <div class="seg c4">
+        <button id="btnSt_equilibrado" onclick="setAIStyle('equilibrado')" class="active">Equilibrado</button>
+        <button id="btnSt_cauteloso" onclick="setAIStyle('cauteloso')">🛡️ Cauteloso</button>
+        <button id="btnSt_agressivo" onclick="setAIStyle('agressivo')">🔥 Agressivo</button>
+        <button id="btnSt_mix" onclick="setAIStyle('mix')">🎲 Mistos</button>
+      </div>
       <label>PARTIDA ATÉ</label>
       <div class="seg c2">
         <button id="btnTarget0" onclick="setTarget(0)">Queda única<small>só uma rodada</small></button>
@@ -391,7 +415,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 07/11 · 21h · conexão online com 2 caminhos</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 08/11 · etapas do turno, ⚡ modo rápido, 💡 dicas e estilos da IA</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -408,6 +432,8 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
     <div class="scores">
       <div class="score us"><span class="who">NÓS</span><span id="scoreTeam1" class="num">0</span><span id="roundScoreTeam1" class="sub">(Queda: 0)</span></div>
       <div class="score them"><span class="who">ELES</span><span id="scoreTeam2" class="num">0</span><span id="roundScoreTeam2" class="sub">(Queda: 0)</span></div>
+      <button id="fastBtn" class="tb-btn off" onclick="toggleRapido()" aria-label="Modo rápido">⚡</button>
+      <button id="hintBtn" class="tb-btn" onclick="toggleDicas()" aria-label="Dicas">💡</button>
       <button id="soundBtn" class="tb-btn" onclick="toggleSound()" aria-label="Som">🔊</button>
       <button class="tb-btn" onclick="toggleRulesModal()">Regras</button>
       <button class="tb-btn" onclick="goToMenu()">Menu</button>
@@ -470,6 +496,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
       </div>
       <div class="status">
         <div class="st">Status da partida</div>
+        <div id="friendDown" class="fd hidden"></div>
         <div id="statusMessage" class="sm">Sua vez! Compre do monte ou do lixo.</div>
         <div id="turnIndicator" class="tv">Vez: Você</div>
         <div id="lastPlay" class="lp"></div>
@@ -487,13 +514,16 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
     <div class="dock">
       <div id="countsBar" class="counts"></div>
       <div id="youStrip" class="you-strip"></div>
+      <div id="stepsBar" class="steps"><span data-s="1">① Comprar</span><span data-s="2">② Baixar ou encaixar</span><span data-s="3">③ Descartar</span></div>
       <div class="actions" style="margin-bottom:8px">
         <button class="btn meld" onclick="playerMeldsSelected()">Baixar sequência</button>
         <button class="btn attach" onclick="playerAttachSelected()">Encaixar</button>
         <button class="btn disc" onclick="playerDiscardSelected()">Descartar</button>
+        <button class="btn util" id="btnClear" onclick="clearSelection()">Limpar</button>
         <button class="btn util" onclick="sortPlayerHand()">Organizar mão</button>
         <button class="btn util" onclick="showPileModal()">Ver lixo</button>
       </div>
+      <div id="handHint" class="hh hidden"></div>
       <div id="playerHand" class="hand"></div>
     </div>
   </main>
@@ -518,6 +548,13 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
         <button data-nl="easy" onclick="netPick('l','easy')">Fácil</button>
         <button data-nl="medium" onclick="netPick('l','medium')">Médio</button>
         <button data-nl="hard" onclick="netPick('l','hard')">Difícil</button>
+      </div>
+      <label style="display:block;font-size:11px;letter-spacing:.08em;color:var(--muted);margin:0 0 6px">ESTILO DOS ADVERSÁRIOS</label>
+      <div class="seg c4" style="margin-bottom:12px">
+        <button data-ns="equilibrado" onclick="netPick('s','equilibrado')">Equilib.</button>
+        <button data-ns="cauteloso" onclick="netPick('s','cauteloso')">🛡️</button>
+        <button data-ns="agressivo" onclick="netPick('s','agressivo')">🔥</button>
+        <button data-ns="mix" onclick="netPick('s','mix')">🎲</button>
       </div>
     </div>
     <div id="netDiag" style="font-size:11px;line-height:1.5;color:var(--muted);margin:8px 0 10px;text-align:left;white-space:pre-line"></div>
@@ -709,6 +746,15 @@ window.addEventListener('DOMContentLoaded', () => {
             const textMap = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
             document.getElementById('aiLevelBadge').innerText = 'IA: ' + textMap[level];
         }
+
+        function setAIStyle(v) {
+            aiStyleSetting = v;
+            try { localStorage.setItem('buracoEstilo', v); } catch (e) { }
+            ['equilibrado', 'cauteloso', 'agressivo', 'mix'].forEach(k => {
+                const b = document.getElementById('btnSt_' + k); if (b) b.classList.toggle('active', k === v);
+            });
+        }
+        window.addEventListener('DOMContentLoaded', () => setAIStyle(aiStyleSetting));
 
         function toggleRulesModal() {
             document.getElementById('rulesModal').classList.toggle('hidden');
@@ -962,6 +1008,18 @@ function showDrawnCardNotification(cards) {
             return p.id === 0 ? 'Você' : 'Adversário';
         }
 
+        function seatWho(p) {
+            if (p.id === 0) return '';
+            if (gameMode !== '2x2') { const e1 = (AI_STYLES[aiStyleName(p.id)] || {}).em; return '🤖 IA' + (e1 ? ' ' + e1 : ''); }
+            if (p.id === 2) {
+                if (typeof netRole !== 'undefined' && netRole === 'host') return netGuestConnected ? '👤 amigo' : '🔌 fora · 🤖 IA';
+                if (typeof netRole !== 'undefined' && netRole === 'guest') return '👤 amigo';
+            }
+            const hid = (typeof netRole !== 'undefined' && netRole === 'guest') ? (p.id + 2) % 4 : p.id;
+            const em = (AI_STYLES[aiStyleName(hid)] || {}).em;
+            return '🤖 IA' + (em ? ' ' + em : '');
+        }
+
         function renderSeat(k, p, ally, reveal) {
             const n = p.hand.length;
             const low = n <= 3;
@@ -971,7 +1029,8 @@ function showDrawnCardNotification(cards) {
             document.getElementById(k + 'Fan').innerHTML = fanHTML(p.hand, reveal);
             document.getElementById(k + 'Fan').classList.toggle('faces', !!reveal);
             document.getElementById(k + 'Chips').innerHTML = chipsHTML(p.team);
-            return tag;
+            const who = seatWho(p);
+            return (who ? `<span class="who">${who}</span> ` : '') + tag;
         }
 
         function updateCounts() {
@@ -980,7 +1039,8 @@ function showDrawnCardNotification(cards) {
             bar.innerHTML = players.map(p => {
                 const n = p.hand.length;
                 const ally = p.team === 0;
-                return `<span class="cn${n <= 3 ? ' low' : ''}${n <= 3 && ally ? ' good' : ''}">${seatLabel(p)}<b>${n}</b></span>`;
+                const w = seatWho(p).split(' ')[0];
+                return `<span class="cn${n <= 3 ? ' low' : ''}${n <= 3 && ally ? ' good' : ''}">${seatLabel(p)}${w ? ' ' + w : ''}<b>${n}</b></span>`;
             }).join('');
             document.getElementById('youStrip').innerHTML = chipsHTML(0).replace('PODE BATER', 'VOCÊS PODEM BATER');
             players.forEach(p => {
@@ -1533,6 +1593,16 @@ let aiPileStreak = 0;          // lixos seguidos sem comprar do monte (trava ant
 let aiEmptyDeckPileTakes = 0; // trava anti-loop quando o monte acabou
 let lastHitter = null;
 
+const AI_STYLES = {
+    equilibrado: { danger: 1, margin: 0, pile: 0.6, em: '' },
+    cauteloso: { danger: 1.6, margin: 8, pile: 0.4, em: '🛡️' },
+    agressivo: { danger: 0.6, margin: -6, pile: 0.8, em: '🔥' }
+};
+let aiStyleSetting = 'equilibrado';
+try { const __v = localStorage.getItem('buracoEstilo'); if (AI_STYLES[__v] || __v === 'mix') aiStyleSetting = __v; } catch (e) { }
+let aiStyleSeed = Math.floor(Math.random() * 3);
+function aiStyleName(id) { return aiStyleSetting !== 'mix' ? aiStyleSetting : ['cauteloso', 'agressivo', 'equilibrado'][(id + aiStyleSeed) % 3]; }
+function aiSty(ai) { return AI_STYLES[aiStyleName(ai.id)] || AI_STYLES.equilibrado; }
 function aiCardPts(v) { return v === 14 ? 15 : (v === 2 ? 10 : (v >= 8 ? 10 : 5)); }
 function aiCardName(c) { return getCardLabel(c.value) + c.suit; }
 
@@ -1845,7 +1915,7 @@ function aiDecideDraw(ai, level, ctx) {
         if (deckEmpty) return 'end';
         if (pile.length > 6) return 'deck';
         const top = pile[pile.length - 1];
-        if (aiTopUsable(ai, top) && Math.random() < 0.6) return 'pile';
+        if (aiTopUsable(ai, top) && Math.random() < aiSty(ai).pile) return 'pile';
         if (pile.length <= 2 && Math.random() < 0.08) return 'pile';
         return 'deck';
     }
@@ -1884,7 +1954,7 @@ function aiDecideDraw(ai, level, ctx) {
     } else {
         vDeck = vb.v + 5;
     }
-    return (vPile - vDeck) > L.margin ? 'pile' : 'deck';
+    return (vPile - vDeck) > L.margin + aiSty(ai).margin ? 'pile' : 'deck';
 }
 
 // ---------- descarte ----------
@@ -1914,7 +1984,7 @@ function aiDanger(c, ai, ctx) {
         const pileNear = discardPile.filter(k => k.suit === c.suit && k.value !== c.value && Math.abs(k.value - c.value) <= 2).length;
         if (pileNear >= 2) d += 18; else if (pileNear === 1) d += 6;
     }
-    return d * nf;
+    return d * nf * aiSty(ai).danger;
 }
 
 // devolve o índice da carta a descartar em ai.hand
@@ -2099,9 +2169,14 @@ function aiSummaryExtras(winnerTeamIdx, hitter) {
     }
     const dn = [];
     if (deadRefills > 0) dn.push(`O monte acabou e <b>${deadRefills}</b> morto${deadRefills > 1 ? 's viraram' : ' virou'} monte.`);
-    const left = deadDecks[0].length + deadDecks[1].length;
+    const left = (deadDecks[0].length > 0 ? 1 : 0) + (deadDecks[1].length > 0 ? 1 : 0);
     if (left > 0) dn.push(`<b>${left}</b> morto${left > 1 ? 's ficaram' : ' ficou'} na mesa sem ser pego${left > 1 ? 's' : ''}.`);
     if (dn.length) msg += '<br>' + dn.join(' ');
+    // de onde veio cada ponto: morto e canastras de cada time
+    const nm = t => (t === 0 ? (gameMode === '2x2' ? 'Nós' : 'Você') : 'Eles');
+    const cnt = t => { let l = 0, s = 0; teamMelds[t].forEach(m => { const e = evaluateCanasta(m); if (e.isCanasta) { if (e.type === 'DIRTY') s++; else l++; } }); return `${l} limpa${l === 1 ? '' : 's'} e ${s} suja${s === 1 ? '' : 's'}`; };
+    const mt = t => deadDecksTaken[t] ? `pegou${mortoBy[t] ? ' (' + mortoBy[t] + ')' : ''}` : 'não pegou (−100)';
+    msg += `<br><small>Morto: ${nm(0)} ${mt(0)} · ${nm(1)} ${mt(1)}<br>Canastras: ${nm(0)} ${cnt(0)} · ${nm(1)} ${cnt(1)}</small>`;
     if (note) { note.innerHTML = msg; note.classList.remove('hidden'); }
     const bt = document.getElementById('endBarText');
     if (bt) bt.innerText = byBat ? `${hitter ? seatLabel(hitter) : 'Equipe'} bateu!` : 'Monte vazio — queda encerrada';
@@ -2296,7 +2371,7 @@ function matchCheck() {
         if (eb) { eb.innerText = 'Nova partida'; eb.onclick = startGame; }
     } else {
         matchSave();
-        if (sub) sub.innerText = `Meta da partida: ${fmt(targetScore)} · Nós ${fmt(a)} × Eles ${fmt(b)}`;
+        if (sub) sub.innerText = `Meta da partida: ${fmt(targetScore)} · Nós ${fmt(a)} × Eles ${fmt(b)} · Falta: nós ${fmt(Math.max(0, targetScore - a))} · eles ${fmt(Math.max(0, targetScore - b))}`;
         if (btn) { btn.innerText = 'Próxima queda'; btn.onclick = startNextRound; }
         if (eb) { eb.innerText = 'Próxima queda'; eb.onclick = startNextRound; }
     }
@@ -2398,9 +2473,10 @@ function netShow(title, msg, opts) {
 function netSyncSetup() {
     document.querySelectorAll('#netSetup [data-nt]').forEach(b => b.classList.toggle('active', Number(b.dataset.nt) === targetScore));
     document.querySelectorAll('#netSetup [data-nl]').forEach(b => b.classList.toggle('active', b.dataset.nl === aiLevel));
+    document.querySelectorAll('#netSetup [data-ns]').forEach(b => b.classList.toggle('active', b.dataset.ns === aiStyleSetting));
 }
 function netPick(kind, v) {
-    if (kind === 't') setTarget(v); else setAILevel(v);
+    if (kind === 't') setTarget(v); else if (kind === 's') setAIStyle(v); else setAILevel(v);
     netSyncSetup();
 }
 function netHide() { document.getElementById('netModal').classList.add('hidden'); }
@@ -2429,6 +2505,7 @@ const NET_BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:
 let netKey = '', netMode = 'rtc', netBrokerIdx = 0, netPeerOk = true, netMqttOk = false;
 let netMqtt = [], netMqttConns = {}, netGuestMqtt = null;
 function netMqttBase() { return 'buraco-tdp/v1/' + netCode + '-' + netKey; }
+function netDefKey() { return 'k' + String(netCode || '').toLowerCase(); }
 function netRandId(n) { let r = ''; const a = 'abcdefghijkmnpqrstuvwxyz23456789'; for (let i = 0; i < n; i++) r += a[Math.floor(Math.random() * a.length)]; return r; }
 function netLoadMqtt() {
     return new Promise((resolve, reject) => {
@@ -2462,7 +2539,8 @@ class NetMqttConn {
     }
 }
 function netMqttHostStart() {
-    if (!netKey || netMqtt.length) return;
+    if (netMqtt.length) return;
+    netKey = netDefKey();
     netLoadMqtt().then(() => {
         NET_BROKERS.forEach((url, bi) => {
             let cl; try { cl = mqtt.connect(url, { clientId: 'h' + netRandId(10), reconnectPeriod: 3000, connectTimeout: 8000, keepalive: 20, clean: true }); } catch (e) { return; }
@@ -2503,6 +2581,7 @@ function netMqttGuestConn(lost) {
     const conn = new NetMqttConn(cl, cid, 'guest', { tok: netGuestTok });
     cl.on('error', () => { netDiag('retransmissão: erro de rede'); });
     cl.on('connect', () => {
+        netDiag('retransmissão: servidor ' + (bi + 1) + ' conectado ✓, chamando o anfitrião');
         cl.subscribe(netMqttBase() + '/c/' + cid + '/h2g', { qos: 1 }, () => {
             const hi = () => { if (!conn.open && !conn.closed) cl.publish(netMqttBase() + '/join', JSON.stringify({ t: 'hello', cid, tok: netGuestTok }), { qos: 1 }); };
             hi(); conn.hello = setInterval(hi, 1500);
@@ -2544,10 +2623,11 @@ async function netHostStart() {
     netRole = 'host';
     setGameMode('2x2');
     netShow('Criando a sala…', 'Um instante.');
-    netKey = netRandId(10);
+    netKey = '';
     let peerLoaded = true;
     try { await netLoadPeer(); } catch (e) { peerLoaded = false; }
     const showLink = () => {
+        netKey = netDefKey();
         const link = location.origin + location.pathname + '?sala=' + netCode + '&k=' + netKey;
         netShow('Sala criada: ' + netCode, 'Mande este link para o seu amigo. Quando ele entrar, a partida começa' + (pendingScores ? ' de onde pararam (' + pendingScores[0] + ' × ' + pendingScores[1] + ')' : '') + '. Ele joga como seu parceiro contra 2 adversários da IA.', { link });
     };
@@ -2691,7 +2771,7 @@ function netSnapshot() {
         deck: deck.length, dead: [deadDecks[0].length, deadDecks[1].length],
         pile: discardPile, melds: teamMelds,
         players: players.map((p, i) => ({ team: p.team, n: p.hand.length, hand: (i === 2 || ended) ? p.hand : null })),
-        lastPlay: lastPlayText, refills: deadRefills
+        lastPlay: lastPlayText, refills: deadRefills, sty: [aiStyleSetting, aiStyleSeed]
     };
 }
 function netBroadcast() {
@@ -2708,7 +2788,7 @@ function netBroadcast() {
 
 // ------------------------- CONVIDADO -------------------------
 async function netGuestJoin(code, key) {
-    netRole = 'guest'; netCode = code; netKey = key || '';
+    netRole = 'guest'; netCode = code; netKey = key || netDefKey();
     try {
         netGuestTok = localStorage.getItem('buracoTok') || '';
         if (!netGuestTok) { netGuestTok = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('buracoTok', netGuestTok); }
@@ -2717,7 +2797,7 @@ async function netGuestJoin(code, key) {
     netShow('Entrando na sala ' + code + '…', 'Conectando ao anfitrião.');
     netPeerOk = true; netMqttOk = false;
     try { await netLoadPeer(); } catch (e) { netPeerOk = false; }
-    if (netKey) { try { await netLoadMqtt(); netMqttOk = true; } catch (e) { } }
+    try { await netLoadMqtt(); netMqttOk = true; netDiag('caminho por servidor: biblioteca carregada ✓'); } catch (e) { netDiag('caminho por servidor: NÃO carregou (biblioteca bloqueada ou sem internet)'); }
     if (!netPeerOk && !netMqttOk) return netShow('Sem conexão', 'Não consegui carregar o módulo de jogo online. Verifique a internet e abra o link de novo.', {});
     netMode = netPeerOk ? 'rtc' : 'mqtt';
     netInstallGuestActions();
@@ -2870,7 +2950,7 @@ function netApply(S) {
     mortoBy = {};
     Object.keys(S.mortoSeat || {}).forEach(t => { mortoBy[t] = seatLabel(players[(S.mortoSeat[t] - 2 + 4) % 4]); });
     selectedCards = selectedCards.map(c => players[0].hand.find(h => h.id === c.id)).filter(Boolean);
-    setLastPlay(S.lastPlay); deadRefills = S.refills || 0;
+    setLastPlay(S.lastPlay); deadRefills = S.refills || 0; if (S.sty) { aiStyleSetting = S.sty[0]; aiStyleSeed = S.sty[1]; }
     document.getElementById('gameModeBadge').innerText = '2x2';
     [0, 1].forEach(tm => {
         const el = document.getElementById(tm === 0 ? 'roundScoreTeam1' : 'roundScoreTeam2');
@@ -3009,6 +3089,154 @@ const __sndOrigToggle = toggleCardSelection;
 toggleCardSelection = function () { sndPlay('tap'); return __sndOrigToggle.apply(this, arguments); };
 window.addEventListener('DOMContentLoaded', sndRefreshBtn);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && sndBaseTitle) { document.title = sndBaseTitle; sndBaseTitle = ''; } });
+
+// ------------------------- AJUDAS: avisos de assento, mensagens de seleção e dicas -------------------------
+let dicasOn = false;
+try { dicasOn = localStorage.getItem('buracoDicas') === '1'; } catch (e) { }
+function dicasRefreshBtn() {
+    const b = document.getElementById('hintBtn');
+    if (b) { b.classList.toggle('off', !dicasOn); b.title = dicasOn ? 'Dicas ligadas (avisa descarte arriscado)' : 'Dicas desligadas (toque para ligar)'; }
+}
+function toggleDicas() {
+    dicasOn = !dicasOn;
+    try { localStorage.setItem('buracoDicas', dicasOn ? '1' : '0'); } catch (e) { }
+    dicasRefreshBtn(); try { updateUI(); } catch (e) { }
+    showToast(dicasOn ? '💡 Dicas ligadas: aviso quando um descarte encaixa num jogo dos adversários.' : '💡 Dicas desligadas.', '');
+    try { assistSelMsg(); } catch (e) { }
+}
+window.addEventListener('DOMContentLoaded', dicasRefreshBtn);
+
+// só olha o que está visível na mesa (jogos já baixados pelos adversários), nunca a mão deles
+function assistRisky(card) {
+    try { return teamMelds[1].some(m => isValidSequence(m.cards.concat([card]))); } catch (e) { return false; }
+}
+
+function assistSelMsg() {
+    if (rodadaEncerrada || !players.length) return;
+    const n = selectedCards.length;
+    if (turnIndex !== 0) { if (n) logStatus('Ainda não é a sua vez. Você pode ir escolhendo as cartas.'); return; }
+    if (!hasDrawn) { logStatus(n ? 'Primeiro compre do monte ou do lixo.' : 'Sua vez! Compre do monte ou do lixo.'); return; }
+    let msg;
+    if (n === 0) msg = 'Escolha 1 carta para descartar ou encaixar, ou 3 ou mais para baixar um jogo.';
+    else if (n === 1) {
+        const c = selectedCards[0];
+        msg = `${getCardLabel(c.value)}${c.suit} selecionada: toque em Descartar, ou num jogo seu na mesa para encaixar.`;
+        if (dicasOn && assistRisky(c)) msg += ' ⚠️ Dica: essa carta encaixa num jogo dos adversários; se descartar, eles podem pegar o lixo.';
+    } else if (n === 2) msg = '2 cartas: selecione mais 1 (mínimo 3) para Baixar sequência, ou toque num jogo seu para encaixar.';
+    else {
+        let ok = false; try { ok = analyzeMeld(selectedCards).valid; } catch (e) { }
+        msg = ok ? `${n} cartas formam um jogo válido: toque em Baixar sequência.` : `${n} cartas ainda não formam um jogo (precisa ser sequência do mesmo naipe, em ordem).`;
+    }
+    logStatus(msg);
+}
+const __asToggle = toggleCardSelection;
+toggleCardSelection = function () { const r = __asToggle.apply(this, arguments); try { assistSelMsg(); } catch (e) { } return r; };
+
+// aviso fixo de "amigo caiu" e mensagem no meio da jogada do parceiro (anfitrião e convidado)
+function assistRefresh() {
+    const bar = document.getElementById('friendDown');
+    if (!bar || !players.length) return;
+    const down = netRole === 'host' && !netGuestConnected && gameMode === '2x2' && players.length === 4 && !rodadaEncerrada;
+    bar.classList.toggle('hidden', !down);
+    if (down) bar.innerText = '🔌 Seu amigo caiu: a IA joga no lugar dele. Ele volta entrando pelo mesmo link.';
+    const friendHuman = gameMode === '2x2' && ((netRole === 'host' && netGuestConnected) || netRole === 'guest');
+    if (friendHuman && !rodadaEncerrada && turnIndex === 2) {
+        const el = document.getElementById('statusMessage');
+        if (el) el.innerText = hasDrawn ? '👤 Parceiro já comprou; falta descartar.' : '👤 Vez do parceiro: ele vai comprar.';
+    }
+}
+const __asUpdateUI = updateUI;
+updateUI = function () { __asUpdateUI.apply(this, arguments); try { assistRefresh(); } catch (e) { } };
+
+// ------------------------- ETAPAS DO TURNO, LIMPAR SELEÇÃO, MODO RÁPIDO, SEQUÊNCIAS NA MÃO -------------------------
+function clearSelection() {
+    if (!selectedCards.length) return;
+    selectedCards = [];
+    updateUI();
+    try { assistSelMsg(); } catch (e) { }
+}
+
+let rapidoOn = false;
+try { rapidoOn = localStorage.getItem('buracoRapido') === '1'; } catch (e) { }
+function rapidoRefresh() {
+    document.body.classList.toggle('fast', rapidoOn);
+    const b = document.getElementById('fastBtn');
+    if (b) { b.classList.toggle('off', !rapidoOn); b.title = rapidoOn ? 'Modo rápido ligado (IA joga mais depressa)' : 'Modo rápido desligado (toque para ligar)'; }
+}
+function toggleRapido() {
+    rapidoOn = !rapidoOn;
+    try { localStorage.setItem('buracoRapido', rapidoOn ? '1' : '0'); } catch (e) { }
+    rapidoRefresh();
+    showToast(rapidoOn ? '⚡ Modo rápido ligado: a IA joga mais depressa e as animações ficam curtas.' : '⚡ Modo rápido desligado.', '');
+}
+window.addEventListener('DOMContentLoaded', rapidoRefresh);
+scheduleAI = function () {
+    clearTimeout(aiTimer);
+    aiTimer = setTimeout(playAITurn, rapidoOn ? 350 : 1200);
+};
+
+// cartas "quase em sequência" na sua mão (só olha a SUA mão)
+function assistNear() {
+    const hand = players[0].hand, out = { ids: new Set(), txt: [] };
+    const bySuit = {};
+    hand.forEach(c => { if (c.isJoker) return; (bySuit[c.suit] = bySuit[c.suit] || []).push(c); });
+    Object.keys(bySuit).forEach(s => {
+        const cs = bySuit[s];
+        const vals = new Set(); cs.forEach(c => { vals.add(c.value); if (c.value === 14) vals.add(1); });
+        const have = v => vals.has(v);
+        const lab = v => getCardLabel(v === 1 ? 14 : v) + s;
+        const mark = vs => cs.forEach(c => { if (vs.includes(c.value) || (c.value === 14 && vs.includes(1))) out.ids.add(c.id); });
+        const seen = new Set();
+        for (let v = 1; v <= 13; v++) {
+            if (!have(v)) continue;
+            if (have(v + 1) && !have(v + 2) && !have(v - 1)) {      // par colado: falta antes ou depois
+                const need = [v - 1 >= 1 ? lab(v - 1) : null, v + 2 <= 14 ? lab(v + 2) : null].filter(Boolean);
+                const k = 'p' + v; if (!seen.has(k)) { seen.add(k); mark([v, v + 1]); if (need.length) out.txt.push(`${lab(v)} ${lab(v + 1)} (falta ${need.join(' ou ')})`); }
+            }
+            if (have(v + 2) && !have(v + 1)) {                       // buraco no meio
+                mark([v, v + 2]); out.txt.push(`${lab(v)} ${lab(v + 2)} (falta ${lab(v + 1)})`);
+            }
+        }
+    });
+    out.txt = out.txt.slice(0, 4);
+    return out;
+}
+
+const __asRefresh2 = assistRefresh;
+assistRefresh = function () {
+    __asRefresh2.apply(this, arguments);
+    try {
+        if (!players.length) return;
+        const mine = turnIndex === 0 && !rodadaEncerrada;
+        const bar = document.getElementById('stepsBar');
+        if (bar) {
+            bar.querySelectorAll('span').forEach(sp => {
+                const st = Number(sp.dataset.s);
+                const on = mine && ((st === 1 && !hasDrawn) || (st >= 2 && hasDrawn));
+                sp.classList.toggle('on', on);
+                sp.classList.toggle('done', mine && hasDrawn && st === 1);
+            });
+        }
+        const n = selectedCards.length, act = mine && hasDrawn;
+        const setDim = (sel, dim) => { const b = document.querySelector(sel); if (b) b.classList.toggle('dim', !!dim); };
+        setDim('.btn.meld', !(act && n >= 3));
+        setDim('.btn.attach', !(act && n >= 1 && teamMelds[0].length > 0));
+        setDim('.btn.disc', !(act && n === 1));
+        setDim('#btnClear', n === 0);
+        document.querySelectorAll('.pile.click').forEach(p => p.classList.toggle('nudge', mine && !hasDrawn));
+        // sequências na mão (só com 💡 Dicas ligado)
+        const hh = document.getElementById('handHint');
+        const near = (dicasOn && !rodadaEncerrada) ? assistNear() : null;
+        if (hh) {
+            hh.classList.toggle('hidden', !(near && near.txt.length));
+            if (near && near.txt.length) hh.innerText = '💡 Perto de sequência: ' + near.txt.join(' · ');
+        }
+        document.querySelectorAll('#playerHand .card').forEach(el => {
+            const m = /toggleCardSelection\((\d+)\)/.exec(el.getAttribute('onclick') || '');
+            el.classList.toggle('near', !!(near && m && near.ids.has(Number(m[1]))));
+        });
+    } catch (e) { }
+};
 
         function logStatus(msg) {
             if (netCapture) { netCapture.push(msg); return; }
