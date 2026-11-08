@@ -160,7 +160,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .score .num{font-size:20px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
 .score .sub{font-size:10px;font-weight:500;color:var(--muted)}
 .tb-btn{padding:6px 11px;border-radius:9px;background:#1a2c21;border:1px solid #35553f;font-size:11.5px;font-weight:700;color:#d8e6dc}
-.who{display:block;font-size:10.5px;font-weight:700;opacity:.92}
+.swho{display:block;font-size:10.5px;font-weight:700;opacity:.92}
 .fd{background:#4a2410;border:1px solid #c0602b;color:#ffd9bd;font-size:12px;font-weight:600;padding:5px 9px;border-radius:8px;margin:4px 0;text-align:center}
 .tb-btn.off{opacity:.45}
 @media(max-width:480px){.topbar{gap:6px}.tb-btn{padding:6px 8px}#fastBtn,#hintBtn,#soundBtn{padding:6px 7px}}
@@ -339,6 +339,30 @@ body.fast *{transition-duration:.06s!important}
   .fan{--card-w:26px}
   .btn{padding:9px 11px;font-size:11.5px}
 }
+.t-short{display:none}
+@media(max-width:340px){.table{padding:4px;border-width:5px}#game{padding-left:3px;padding-right:3px}.scores{gap:6px}.tb-btn,#fastBtn,#hintBtn,#soundBtn{padding:6px 6px}.score .num{font-size:17px}.topbar{padding:5px 6px}}
+@media(max-width:400px){.t-long{display:none}.t-short{display:inline;font-size:14px;line-height:1}#gameModeBadge{display:none}}
+@media(max-width:520px){
+  .steps{margin:0 0 4px;font-size:10px;gap:4px}.steps span{padding:2px 7px}
+  .actions{gap:6px!important;margin-bottom:4px!important}
+  .actions{display:grid!important;grid-template-columns:repeat(3,1fr)}
+  .actions .btn{padding:6px 3px;font-size:10.5px;line-height:1.15;min-width:0}
+  .topbar .brand{font-size:0;gap:0}
+  .chip{font-size:9.5px;padding:2px 6px}
+  .hand{padding:24px 10px 6px}
+  .hand-inner.wrap{gap:8px 5px}
+  .fd{margin:2px 0;padding:3px 8px;font-size:11px}
+}
+@media(max-height:520px) and (orientation:landscape){
+  :root{--card-w:44px}
+  .steps,.fd{display:none}
+  .topbar{padding:3px 8px;gap:6px}.topbar .brand{display:none}.score .sub{display:none}
+  .table{padding:4px;border-width:5px;margin-top:3px;gap:4px}
+  .actions{gap:5px!important;margin-bottom:3px!important}
+  .actions .btn{padding:5px 8px;font-size:10.5px}
+  .hand{padding:22px 8px 4px;min-height:0}
+  .mid-row{--card-w:42px;--card-w-c:42px}
+}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -417,7 +441,7 @@ body.fast *{transition-duration:.06s!important}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 08/11 · mão do celular sem cartas sobrepostas</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 08/11 · celular: mesa e montes reorganizados, confirmação ao sair</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -437,8 +461,8 @@ body.fast *{transition-duration:.06s!important}
       <button id="fastBtn" class="tb-btn off" onclick="toggleRapido()" aria-label="Modo rápido">⚡</button>
       <button id="hintBtn" class="tb-btn" onclick="toggleDicas()" aria-label="Dicas">💡</button>
       <button id="soundBtn" class="tb-btn" onclick="toggleSound()" aria-label="Som">🔊</button>
-      <button class="tb-btn" onclick="toggleRulesModal()">Regras</button>
-      <button class="tb-btn" onclick="goToMenu()">Menu</button>
+      <button class="tb-btn" onclick="toggleRulesModal()" aria-label="Regras"><span class="t-long">Regras</span><span class="t-short">?</span></button>
+      <button class="tb-btn" onclick="goToMenu()" aria-label="Menu"><span class="t-long">Menu</span><span class="t-short">☰</span></button>
     </div>
   </header>
 
@@ -578,6 +602,16 @@ body.fast *{transition-duration:.06s!important}
 </div>
 
 <!-- ============ MODAIS ============ -->
+<div id="leaveModal" class="modal hidden">
+  <div class="sheet">
+    <h3>SAIR DA PARTIDA?</h3>
+    <p id="leaveText" class="sub"></p>
+    <div class="row2">
+      <button class="b-cancel" onclick="leaveCancel()">Continuar jogando</button>
+      <button class="b-ok" onclick="leaveConfirm()">Sair</button>
+    </div>
+  </div>
+</div>
 <div id="confirmDiscardModal" class="modal hidden">
   <div class="sheet">
     <h3>PEGAR O LIXO?</h3>
@@ -1033,7 +1067,7 @@ function showDrawnCardNotification(cards) {
             document.getElementById(k + 'Fan').classList.toggle('faces', !!reveal);
             document.getElementById(k + 'Chips').innerHTML = chipsHTML(p.team);
             const who = seatWho(p);
-            return (who ? `<span class="who">${who}</span> ` : '') + tag;
+            return (who ? `<span class="swho">${who}</span> ` : '') + tag;
         }
 
         function updateCounts() {
@@ -1073,9 +1107,9 @@ function showDrawnCardNotification(cards) {
                 const gap = 5;
                 const fit = p => Math.min(cw, Math.floor((avail - (p - 1) * gap) / p));
                 let per = Math.max(1, Math.floor((avail + gap) / (cw + gap)));
-                if (n > 10 && per < 6 && fit(6) >= 46) per = 6;
+                if (n > 10 && per < 6 && fit(6) >= 40) per = 6;
                 if (per < 5 && fit(5) >= 44) per = 5;
-                const w = Math.max(44, fit(per));
+                const w = Math.max(40, fit(per));
                 handEl.innerHTML = `<div class="hand-inner wrap" style="--card-w:${w}px;width:${per * w + (per - 1) * gap}px">` + hand.map(card =>
                     renderCardHTML(card, `toggleCardSelection(${card.id})`, selectedCards.some(c => c.id === card.id), '', '')
                 ).join('') + '</div>';
@@ -3249,6 +3283,16 @@ assistRefresh = function () {
         setDim('.btn.disc', !(act && n === 1));
         setDim('#btnClear', n === 0);
         document.querySelectorAll('.pile.click').forEach(p => p.classList.toggle('nudge', mine && !hasDrawn));
+        // na hora de comprar, garante que os montes estejam à vista na área rolável da mesa
+        const sk = (mine && !hasDrawn) ? `${deck.length}|${discardPile.length}|${players[0].hand.length}` : '';
+        if (sk && sk !== window.__assistScrollKey) {
+            const pa = document.querySelector('.play-area'), pl = document.querySelector('.pile.click');
+            if (pa && pl) {
+                const pr = pl.getBoundingClientRect(), ar = pa.getBoundingClientRect();
+                if (pr.top < ar.top || pr.bottom > ar.bottom) pa.scrollTop += (pr.top + pr.bottom) / 2 - (ar.top + ar.bottom) / 2;
+            }
+        }
+        window.__assistScrollKey = sk;
         // sequências na mão (só com 💡 Dicas ligado)
         const hh = document.getElementById('handHint');
         const near = (dicasOn && !rodadaEncerrada) ? assistNear() : null;
@@ -3262,6 +3306,20 @@ assistRefresh = function () {
         });
     } catch (e) { }
 };
+
+// confirmação antes de sair de uma rodada em andamento (evita perder a queda por um toque sem querer)
+const __asGoMenu = goToMenu;
+goToMenu = function () {
+    const inGame = players.length && !rodadaEncerrada && !document.getElementById('game').classList.contains('hidden');
+    if (!inGame) return __asGoMenu();
+    const el = document.getElementById('leaveText');
+    el.innerText = netRole === 'host' ? 'Você é o anfitrião: sair fecha a sala e a queda em andamento será perdida.'
+        : netRole === 'guest' ? 'Você pode voltar depois pelo mesmo link enquanto o anfitrião estiver com a sala aberta.'
+        : 'A queda em andamento será perdida. A pontuação das quedas anteriores continua salva.';
+    document.getElementById('leaveModal').classList.remove('hidden');
+};
+function leaveCancel() { document.getElementById('leaveModal').classList.add('hidden'); }
+function leaveConfirm() { document.getElementById('leaveModal').classList.add('hidden'); __asGoMenu(); }
 
         function logStatus(msg) {
             if (netCapture) { netCapture.push(msg); return; }
