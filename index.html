@@ -441,7 +441,7 @@ body.fast *{transition-duration:.06s!important}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 08/11 · 17h30 · regra do monte nas regras e aviso de canasta limpa</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 08/11 · 18h40 · registro do morto no resultado</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -2230,7 +2230,9 @@ function aiSummaryExtras(winnerTeamIdx, hitter) {
     const nm = t => (t === 0 ? (gameMode === '2x2' ? 'Nós' : 'Você') : 'Eles');
     const cnt = t => { let l = 0, s = 0; teamMelds[t].forEach(m => { const e = evaluateCanasta(m); if (e.isCanasta) { if (e.type === 'DIRTY') s++; else l++; } }); return `${l} limpa${l === 1 ? '' : 's'} e ${s} suja${s === 1 ? '' : 's'}`; };
     const mt = t => deadDecksTaken[t] ? `pegou${mortoBy[t] ? ' (' + mortoBy[t] + ')' : ''}` : 'não pegou (−100)';
-    msg += `<br><small>Morto: ${nm(0)} ${mt(0)} · ${nm(1)} ${mt(1)}<br>Canastras: ${nm(0)} ${cnt(0)} · ${nm(1)} ${cnt(1)}</small>`;
+    const lg = t => morteLog[t] ? `${nm(t)}: jogada ${morteLog[t].jogada}` : '';
+    const lgs = [0, 1].map(lg).filter(Boolean).join(' · ');
+    msg += `<br><small>Morto: ${nm(0)} ${mt(0)} · ${nm(1)} ${mt(1)}${lgs ? '<br>Registro do morto: ' + lgs : ''}${morteHeal.length ? '<br>⚠️ O registro do morto foi corrigido automaticamente (avise o Claude).' : ''}<br>Canastras: ${nm(0)} ${cnt(0)} · ${nm(1)} ${cnt(1)}</small>`;
     if (note) { note.innerHTML = msg; note.classList.remove('hidden'); }
     const bt = document.getElementById('endBarText');
     if (bt) bt.innerText = byBat ? `${hitter ? seatLabel(hitter) : 'Equipe'} bateu!` : 'Monte vazio — queda encerrada';
@@ -3323,6 +3325,28 @@ goToMenu = function () {
 };
 function leaveCancel() { document.getElementById('leaveModal').classList.add('hidden'); }
 function leaveConfirm() { document.getElementById('leaveModal').classList.add('hidden'); __asGoMenu(); }
+
+// ------------------------- REGISTRO DO MORTO (rastreio + proteção do placar) -------------------------
+let morteLog = {};      // { time: {seat, jogada} }  quem pegou o morto e em que jogada
+let morteHeal = [];     // times cujo registro principal divergiu e foi corrigido
+let moveNo = 0;
+const __asStart = startGame;
+startGame = function () { morteLog = {}; morteHeal = []; moveNo = 0; return __asStart.apply(this, arguments); };
+const __asNext = nextTurn;
+nextTurn = function () { moveNo++; return __asNext.apply(this, arguments); };
+const __asCheckDead = checkDeadDeck;
+checkDeadDeck = function (t) {
+    const before = !!deadDecksTaken[t];
+    const r = __asCheckDead.apply(this, arguments);
+    if (!before && deadDecksTaken[t] && !morteLog[t]) morteLog[t] = { seat: mortoBy[t] || '', jogada: moveNo + 1 };
+    return r;
+};
+// se o registro diz que o time pegou o morto, mas o marcador principal diz que não, vale o registro (e avisa no resumo)
+const __asCalc = calculateFinalScores;
+calculateFinalScores = function () {
+    [0, 1].forEach(t => { if (morteLog[t] && !deadDecksTaken[t]) { deadDecksTaken[t] = true; morteHeal.push(t); } });
+    return __asCalc.apply(this, arguments);
+};
 
         function logStatus(msg) {
             if (netCapture) { netCapture.push(msg); return; }
