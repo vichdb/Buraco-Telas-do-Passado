@@ -441,7 +441,7 @@ body.fast *{transition-duration:.06s!important}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 08/11 · celular: mesa e montes reorganizados, confirmação ao sair</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 08/11 · 17h30 · regra do monte nas regras e aviso de canasta limpa</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -644,6 +644,7 @@ body.fast *{transition-duration:.06s!important}
       <li><b>Canastra de 500:</b> sequência limpa de 13 cartas (2 ao Ás ou Ás ao Rei). <b>Real:</b> Ás ao Ás com 14 cartas, 1.000 pontos.</li>
       <li><b>Lixo aberto:</b> você pode comprar do monte ou levar o lixo inteiro, e depois descarta uma carta.</li>
       <li><b>Morto:</b> cada time tem um morto de 11 cartas, pego quando a mão esvazia. Sem pegar o morto, são −100 pontos.</li>
+      <li><b>Monte acabou:</b> se o monte esvazia, um morto que ninguém pegou vira o monte e o jogo continua. O time que <b>não pegou</b> o seu morto leva os −100 no fim da queda (se foram os dois mortos, os dois times levam). Se não houver mais morto nenhum, a queda termina sem batida.</li>
       <li><b>Batida:</b> exige ter pego o morto e ter ao menos uma canastra limpa (sem curinga). Quem bate ganha +100. Sem canastra limpa você não pode ficar sem cartas.</li>
     </ul>
     <button class="b-ok" style="width:100%;padding:12px;border-radius:12px;font-weight:800;border:1px solid" onclick="toggleRulesModal()">Entendi</button>
@@ -1060,7 +1061,9 @@ function showDrawnCardNotification(cards) {
         function renderSeat(k, p, ally, reveal) {
             const n = p.hand.length;
             const low = n <= 3;
-            const tag = low ? (ally ? `<span class="good">Cartas: ${n} · PERTO DE BATER</span>` : `<span class="warn">Cartas: ${n} · CUIDADO!</span>`) : `Cartas: ${n}`;
+            const clean = teamMelds[p.team].some(m => { const e = evaluateCanasta(m); return e.isCanasta && e.type !== 'DIRTY'; });
+            const tag = low ? (!clean ? `<span class="${ally ? 'good' : 'warn'}">Cartas: ${n} · ainda sem canasta limpa</span>`
+                : (ally ? `<span class="good">Cartas: ${n} · PERTO DE BATER</span>` : `<span class="warn">Cartas: ${n} · CUIDADO!</span>`)) : `Cartas: ${n}`;
             document.getElementById(k + 'Badge').innerText = n;
             document.getElementById(k + 'Badge').className = 'badge' + (low ? ' low' : '') + (low && ally ? ' good' : '');
             document.getElementById(k + 'Fan').innerHTML = fanHTML(p.hand, reveal);
