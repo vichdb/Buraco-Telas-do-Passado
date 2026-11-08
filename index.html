@@ -415,7 +415,7 @@ body.fast *{transition-duration:.06s!important}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 08/11 · etapas do turno, ⚡ modo rápido, 💡 dicas e estilos da IA</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 08/11 · link de teste do caminho por servidor e avisos de queda/volta</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -564,6 +564,7 @@ body.fast *{transition-duration:.06s!important}
         <button class="b-cancel" onclick="netCopyLink()">Copiar link</button>
         <button class="b-ok" onclick="netShareWhats()">WhatsApp</button>
       </div>
+      <button class="link-btn" style="margin-top:8px" onclick="netCopyTestLink()">🔧 Copiar link de teste (só caminho por servidor)</button>
     </div>
     <div class="row2" style="margin-top:10px"><button class="b-cancel" onclick="netCancel()">Cancelar</button></div>
   </div>
@@ -2684,7 +2685,7 @@ function netGuestJoined() {
     const running = players.length && !document.getElementById('game').classList.contains('hidden') && !rodadaEncerrada;
     if (running && players.length === 4) {
         players[2].isHuman = true;
-        showToast('Seu amigo voltou para a mesa!', 'good');
+        showToast('Seu amigo voltou: ele joga de novo no lugar da IA.', 'good');
         if (turnIndex === 2) { clearTimeout(aiTimer); logStatus(hasDrawn ? 'Vez do seu amigo: baixar ou descartar.' : 'Vez do seu amigo...'); }
         netBroadcast();
         updateUI();
@@ -2702,7 +2703,7 @@ function netGuestLeft(conn) {
     netConn = null; netStopHb();
     if (players.length === 4 && players[2]) {
         players[2].isHuman = false;
-        showToast('Seu amigo caiu: a IA joga por ele até ele voltar (pelo mesmo link).', '');
+        showToast('Seu amigo caiu: a IA assumiu o lugar dele até ele voltar (pelo mesmo link).', '');
         if (!rodadaEncerrada && turnIndex === 2) {
             if (hasDrawn) aiSkipDraw = true;
             scheduleAI();
@@ -2787,7 +2788,7 @@ function netBroadcast() {
 }
 
 // ------------------------- CONVIDADO -------------------------
-async function netGuestJoin(code, key) {
+async function netGuestJoin(code, key, via) {
     netRole = 'guest'; netCode = code; netKey = key || netDefKey();
     try {
         netGuestTok = localStorage.getItem('buracoTok') || '';
@@ -2796,7 +2797,8 @@ async function netGuestJoin(code, key) {
     document.getElementById('landing').classList.add('hidden');
     netShow('Entrando na sala ' + code + '…', 'Conectando ao anfitrião.');
     netPeerOk = true; netMqttOk = false;
-    try { await netLoadPeer(); } catch (e) { netPeerOk = false; }
+    if (via === 'servidor') { netPeerOk = false; } else { try { await netLoadPeer(); } catch (e) { netPeerOk = false; } }
+    if (via === 'servidor') netDiag('MODO TESTE: só o caminho por servidor (sem conexão direta)');
     try { await netLoadMqtt(); netMqttOk = true; netDiag('caminho por servidor: biblioteca carregada ✓'); } catch (e) { netDiag('caminho por servidor: NÃO carregou (biblioteca bloqueada ou sem internet)'); }
     if (!netPeerOk && !netMqttOk) return netShow('Sem conexão', 'Não consegui carregar o módulo de jogo online. Verifique a internet e abra o link de novo.', {});
     netMode = netPeerOk ? 'rtc' : 'mqtt';
@@ -2837,6 +2839,8 @@ function netGuestConnect() {
         conn.on('open', () => {
             if (done) return;
             netDiag('conectado com o anfitrião ✓ (' + (useMqtt ? 'por servidor' : 'direto') + ')');
+            const wasRe = netReconnecting && netGuestStarted;
+            if (wasRe) showToast('Reconectado ✓ você voltou para a partida.', 'good');
             clearTimeout(to); netTries = 0; netReconnecting = false; netLastRx = Date.now();
             netStartHeartbeat(() => lost('hb'));
             if (netGuestStarted) netHide(); else netShow('Conectado!', 'Aguardando o anfitrião começar a partida…');
@@ -2969,7 +2973,12 @@ function netApply(S) {
 function netBoot() {
     const qs = new URLSearchParams(location.search);
     const code = (qs.get('sala') || '').trim().toUpperCase();
-    if (code) netGuestJoin(code, (qs.get('k') || '').trim());
+    if (code) netGuestJoin(code, (qs.get('k') || '').trim(), (qs.get('via') || '').trim());
+}
+function netCopyTestLink() {
+    const el = document.getElementById('netLink');
+    const v = el.value + (el.value.includes('via=') ? '' : '&via=servidor');
+    try { navigator.clipboard.writeText(v); showToast('Link de teste copiado: o amigo entra só pelo caminho por servidor.', 'good'); } catch (e) { prompt('Copie o link de teste:', v); }
 }
 function netCopyLink() {
     const el = document.getElementById('netLink');
