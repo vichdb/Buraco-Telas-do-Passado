@@ -441,7 +441,7 @@ body.fast *{transition-duration:.06s!important}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 08/11 · 18h40 · registro do morto no resultado</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 09/11 · IA Difícil mais forte</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -1023,9 +1023,12 @@ function showDrawnCardNotification(cards) {
             return { taken: deadDecksTaken[t], clean };
         }
 
-        function chipsHTML(t) {
+        function chipsHTML(t, p) {
             const s = teamStatus(t);
-            return `<span class="chip2 ${s.taken ? 'ok' : 'no'}">Morto ${s.taken ? '✓ pego' : '✗'}</span>` +
+            // 2x2: o morto é da dupla; deixa claro quem pegou e quem é só da equipe
+            let mt = s.taken ? '✓ pego' : '✗';
+            if (s.taken && p && gameMode === '2x2' && mortoBy[t]) mt = (seatLabel(p) === mortoBy[t]) ? '✓ pegou' : '✓ da equipe';
+            return `<span class="chip2 ${s.taken ? 'ok' : 'no'}">Morto ${mt}</span>` +
                    `<span class="chip2 ${s.clean ? 'ok' : 'no'}">Canastra limpa ${s.clean ? '✓' : '✗'}</span>` +
                    (s.taken && s.clean ? '<span class="chip2 gold">PODE BATER</span>' : '');
         }
@@ -1068,7 +1071,7 @@ function showDrawnCardNotification(cards) {
             document.getElementById(k + 'Badge').className = 'badge' + (low ? ' low' : '') + (low && ally ? ' good' : '');
             document.getElementById(k + 'Fan').innerHTML = fanHTML(p.hand, reveal);
             document.getElementById(k + 'Fan').classList.toggle('faces', !!reveal);
-            document.getElementById(k + 'Chips').innerHTML = chipsHTML(p.team);
+            document.getElementById(k + 'Chips').innerHTML = chipsHTML(p.team, p);
             const who = seatWho(p);
             return (who ? `<span class="swho">${who}</span> ` : '') + tag;
         }
@@ -1636,7 +1639,7 @@ const AI_LEVELS = {
     },
     hard: {   // planeja vários turnos: saídas (outs), canastras, morto, batida e risco no descarte
         label: 'Difícil', skip: 0, maxNew: 6, maxSteps: 14, wildNew: true, wildAttach: 1, minGain: 4, noise: 0,
-        potW: 12, useOuts: true, wildHold: 30, canastaDrive: 1.6, mortoW: 90, batW: 150, endAware: true,
+        potW: 36, useOuts: true, wildHold: 30, canastaDrive: 2.4, mortoW: 60, batW: 150, endAware: true,
         margin: 3, leftoverPen: 1.5, sample: 14
     }
 };
