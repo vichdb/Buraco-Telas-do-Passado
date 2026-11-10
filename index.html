@@ -441,7 +441,7 @@ body.fast *{transition-duration:.06s!important}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 09/11 · IA Difícil mais forte</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 10/11 · correção do morto entre quedas</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -3333,21 +3333,22 @@ function leaveConfirm() { document.getElementById('leaveModal').classList.add('h
 let morteLog = {};      // { time: {seat, jogada} }  quem pegou o morto e em que jogada
 let morteHeal = [];     // times cujo registro principal divergiu e foi corrigido
 let moveNo = 0;
-const __asStart = startGame;
-startGame = function () { morteLog = {}; morteHeal = []; moveNo = 0; return __asStart.apply(this, arguments); };
+let morteRound = 0;     // identifica a queda atual: registro de queda anterior nunca vale
+const __asNextRound = startNextRound;   // o botão "Próxima queda" chama esta função (startGame também passa por ela)
+startNextRound = function () { morteLog = {}; morteHeal = []; moveNo = 0; morteRound++; return __asNextRound.apply(this, arguments); };
 const __asNext = nextTurn;
 nextTurn = function () { moveNo++; return __asNext.apply(this, arguments); };
 const __asCheckDead = checkDeadDeck;
 checkDeadDeck = function (t) {
     const before = !!deadDecksTaken[t];
     const r = __asCheckDead.apply(this, arguments);
-    if (!before && deadDecksTaken[t] && !morteLog[t]) morteLog[t] = { seat: mortoBy[t] || '', jogada: moveNo + 1 };
+    if (!before && deadDecksTaken[t] && !morteLog[t]) morteLog[t] = { seat: mortoBy[t] || '', jogada: moveNo + 1, round: morteRound };
     return r;
 };
 // se o registro diz que o time pegou o morto, mas o marcador principal diz que não, vale o registro (e avisa no resumo)
 const __asCalc = calculateFinalScores;
 calculateFinalScores = function () {
-    [0, 1].forEach(t => { if (morteLog[t] && !deadDecksTaken[t]) { deadDecksTaken[t] = true; morteHeal.push(t); } });
+    [0, 1].forEach(t => { if (morteLog[t] && morteLog[t].round === morteRound && !deadDecksTaken[t]) { deadDecksTaken[t] = true; morteHeal.push(t); } });
     return __asCalc.apply(this, arguments);
 };
 
