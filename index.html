@@ -159,6 +159,10 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .score.us .who{color:#4ade80}.score.them .who{color:#fb7185}
 .score .num{font-size:20px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
 .score .sub{font-size:10px;font-weight:500;color:var(--muted)}
+.lang-sel{display:flex;justify-content:center;align-items:center;gap:6px;margin:0 0 12px}
+.lang-sel span{font-size:15px;opacity:.8}
+.lang-sel button{padding:5px 12px;border-radius:999px;background:#1a2c21;border:1px solid #35553f;font-size:12px;font-weight:800;color:#d8e6dc;letter-spacing:.06em}
+.lang-sel button.active{background:#e9b949;border-color:#e9b949;color:#1b1405}
 .tb-btn{padding:6px 11px;border-radius:9px;background:#1a2c21;border:1px solid #35553f;font-size:11.5px;font-weight:700;color:#d8e6dc}
 .swho{display:block;font-size:10.5px;font-weight:700;opacity:.92}
 .fd{background:#4a2410;border:1px solid #c0602b;color:#ffd9bd;font-size:12px;font-weight:600;padding:5px 9px;border-radius:8px;margin:4px 0;text-align:center}
@@ -382,6 +386,7 @@ body.fast *{transition-duration:.06s!important}
   </div>
 
   <div class="landing-inner">
+    <div class="lang-sel" role="group" aria-label="Idioma"><span>🌐</span><button data-lang="pt" onclick="setLang('pt')">PT</button><button data-lang="en" onclick="setLang('en')">EN</button><button data-lang="es" onclick="setLang('es')">ES</button></div>
     <div class="brand-row">
       <span id="brandLogoLanding"></span>
       <span class="bname"><small>apresenta</small>Telas do Passado</span>
@@ -441,7 +446,7 @@ body.fast *{transition-duration:.06s!important}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 10/11 · correção do morto entre quedas</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 11/11 · idiomas PT/EN/ES</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -634,6 +639,7 @@ body.fast *{transition-duration:.06s!important}
 
 <div id="rulesModal" class="modal hidden">
   <div class="sheet wide" style="text-align:left">
+    <div class="lang-sel" role="group" aria-label="Idioma" style="margin-bottom:8px"><span>🌐</span><button data-lang="pt" onclick="setLang('pt')">PT</button><button data-lang="en" onclick="setLang('en')">EN</button><button data-lang="es" onclick="setLang('es')">ES</button></div>
     <h3 style="text-align:center">Regras — Buraco aberto</h3>
     <p class="sub" style="text-align:center">Resumo do que vale neste jogo.</p>
     <ul class="rules">
@@ -2320,7 +2326,7 @@ function histSave(h) {
 }
 
 const TARGETS = [0, 3000, 5000, 10000];   // 0 = queda única (uma rodada só)
-function targetLabel(n) { return n === 0 ? 'Queda única' : 'Meta ' + n.toLocaleString('pt-BR'); }
+function targetLabel(n) { return n === 0 ? 'Queda única' : 'Meta ' + n.toLocaleString((window.__locale || 'pt-BR')); }
 function setTarget(n) {
     targetScore = TARGETS.includes(n) ? n : 3000;
     TARGETS.forEach(v => {
@@ -2357,7 +2363,7 @@ function renderResume() {
     card.classList.toggle('hidden', !s);
     if (!s) return;
     const lvl = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
-    const f = n => n.toLocaleString('pt-BR');
+    const f = n => n.toLocaleString((window.__locale || 'pt-BR'));
     document.getElementById('resumeInfo').innerText = `Meta ${f(s.target)} · ${s.online ? '👥 online 2×2' : (s.mode === '2x2' ? '2×2' : '1×1')} · IA ${lvl[s.level] || ''} · Placar ${f(s.scores[0])} × ${f(s.scores[1])}`;
 }
 function resumeMatch() {
@@ -2394,7 +2400,7 @@ function renderHistory() {
     const lvl = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
     const rows = h.jogos.slice(0, 6).map(j => {
         const dt = new Date(j.t);
-        const ds = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        const ds = dt.toLocaleDateString((window.__locale || 'pt-BR'), { day: '2-digit', month: '2-digit' });
         return `<div class="hrow ${j.venceu ? 'w' : 'l'}"><span class="hb">${j.venceu ? 'V' : 'D'}</span>` +
                `<span class="hs">${j.nos} × ${j.eles}</span><span class="hm">${j.modo} · ${lvl[j.nivel] || ''} · ${j.meta}</span><span class="hd">${ds}</span></div>`;
     }).join('');
@@ -2414,7 +2420,7 @@ function matchCheck() {
     const winner = a > b ? 0 : 1;
     const btn = document.getElementById('btnNextRound'), eb = document.getElementById('endNextBtn');
     const sub = document.getElementById('summarySubtitle'), note = document.getElementById('summaryNote'), title = document.getElementById('summaryTitle');
-    const fmt = n => n.toLocaleString('pt-BR');
+    const fmt = n => n.toLocaleString((window.__locale || 'pt-BR'));
     if (over) {
         const nosTxt = gameMode === '2x2' ? 'SUA EQUIPE' : 'VOCÊ';
         if (single) {
@@ -2486,7 +2492,7 @@ function netIce(relayOnly) {
 }
 let netKeep = null, netDiagLines = [];
 function netDiag(t) {
-    netDiagLines.push(new Date().toLocaleTimeString('pt-BR') + ' ' + t); netDiagLines = netDiagLines.slice(-5);
+    netDiagLines.push(new Date().toLocaleTimeString(window.__locale || 'pt-BR') + ' ' + t); netDiagLines = netDiagLines.slice(-5);
     const el = document.getElementById('netDiag'); if (el) el.innerText = 'Diagnóstico:\n' + netDiagLines.join('\n');
 }
 function netWatchIce(conn, who) {
@@ -3036,7 +3042,7 @@ function netBoot() {
 function netCopyTestLink() {
     const el = document.getElementById('netLink');
     const v = el.value + (el.value.includes('via=') ? '' : '&via=servidor');
-    try { navigator.clipboard.writeText(v); showToast('Link de teste copiado: o amigo entra só pelo caminho por servidor.', 'good'); } catch (e) { prompt('Copie o link de teste:', v); }
+    try { navigator.clipboard.writeText(v); showToast('Link de teste copiado: o amigo entra só pelo caminho por servidor.', 'good'); } catch (e) { prompt(T('Copie o link de teste:'), v); }
 }
 function netCopyLink() {
     const el = document.getElementById('netLink');
@@ -3046,7 +3052,7 @@ function netCopyLink() {
 }
 function netShareWhats() {
     const link = document.getElementById('netLink').value;
-    window.open('https://wa.me/?text=' + encodeURIComponent('Bora jogar Buraco comigo? Entra na sala: ' + link), '_blank');
+    window.open('https://wa.me/?text=' + encodeURIComponent(T('Bora jogar Buraco comigo? Entra na sala: ') + link), '_blank');
 }
 
 // transmite o estado depois de cada redesenho (apenas no anfitrião)
@@ -3351,6 +3357,438 @@ calculateFinalScores = function () {
     [0, 1].forEach(t => { if (morteLog[t] && morteLog[t].round === morteRound && !deadDecksTaken[t]) { deadDecksTaken[t] = true; morteHeal.push(t); } });
     return __asCalc.apply(this, arguments);
 };
+// ---------- idiomas: PT (original) / EN / ES ----------
+// O jogo continua escrito em português; esta camada troca os textos na tela (frases em ordem de tamanho)
+// e guarda o original de cada texto, então dá para trocar de idioma a qualquer momento.
+const I18N_ROWS = [
+// ===== menu =====
+['A canastra clássica da mesa de casa, direto no navegador. Monte seus jogos, faça a canastra limpa e bata primeiro.',
+ 'The classic card game from the family table, right in your browser. Build your melds, make a clean canasta and go out first.',
+ 'El clásico juego de cartas de la mesa de casa, directo en el navegador. Arma tus juegos, haz la canasta limpia y corta primero.'],
+['apresenta', 'presents', 'presenta'],
+['MODALIDADE', 'GAME MODE', 'MODALIDAD'],
+['Você contra a IA', 'You vs the AI', 'Tú contra la IA'],
+['Com parceiro (IA)', 'With a partner (AI)', 'Con compañero (IA)'],
+['NÍVEL DA IA', 'AI LEVEL', 'NIVEL DE LA IA'],
+['ESTILO DOS ADVERSÁRIOS', "OPPONENTS' STYLE", 'ESTILO DE LOS RIVALES'],
+['Fácil', 'Easy', 'Fácil'], ['Médio', 'Medium', 'Medio'], ['Difícil', 'Hard', 'Difícil'],
+['IA: ', 'AI: ', 'IA: '],
+['Equilibrado', 'Balanced', 'Equilibrado'], ['Equilib.', 'Balanced', 'Equilib.'],
+['Cauteloso', 'Cautious', 'Cauteloso'], ['Agressivo', 'Aggressive', 'Agresivo'],
+['Mistos', 'Mixed', 'Mixtos'], ['Misto', 'Mixed', 'Mixto'],
+['PARTIDA ATÉ', 'MATCH TO', 'PARTIDA HASTA'],
+['partida curta', 'short match', 'partida corta'], ['partida longa', 'long match', 'partida larga'],
+['maratona', 'marathon', 'maratón'], ['só uma rodada', 'just one round', 'solo una ronda'],
+['Meta da partida: ', 'Match target: ', 'Meta de la partida: '],
+['Meta ', 'Target ', 'Meta '],
+['1 queda', '1 round', '1 ronda'],
+['Queda única', 'Single round', 'Ronda única'],
+['Jogar com amigo', 'Play with a friend', 'Jugar con un amigo'],
+['Jogar com um amigo (online)', 'Play with a friend (online)', 'Jugar con un amigo (en línea)'],
+['Vocês dois de parceiros contra 2 adversários da IA. Escolha o nível e a meta (3.000 ou 5.000) na próxima tela. Você cria a sala e manda o link no WhatsApp.',
+ 'The two of you as partners against 2 AI opponents. Pick the level and the target (3,000 or 5,000) on the next screen. You create the room and send the link on WhatsApp.',
+ 'Los dos como compañeros contra 2 rivales de la IA. Elige el nivel y la meta (3.000 o 5.000) en la próxima pantalla. Tú creas la sala y mandas el enlace por WhatsApp.'],
+['JOGAR', 'PLAY', 'JUGAR'],
+['SEU HISTÓRICO', 'YOUR HISTORY', 'TU HISTORIAL'],
+['PARTIDA EM ANDAMENTO', 'MATCH IN PROGRESS', 'PARTIDA EN CURSO'],
+['Continuar jogando', 'Keep playing', 'Seguir jugando'],
+['Continuar', 'Continue', 'Continuar'],
+['Descartar', 'Discard', 'Descartar'],
+['Como jogar', 'How to play', 'Cómo jugar'],
+[' à sua mão. Confirmar?', ' to your hand. Confirm?', ' a tu mano. ¿Confirmar?'],
+['3.000', '3,000', '3.000'], ['5.000', '5,000', '5.000'], ['1.000', '1,000', '1.000'],
+['Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.', 'Saved on this device and browser, and never erased by the game.', 'Se guarda en este aparato y navegador y el juego nunca lo borra.'],
+['Buraco aberto · 2 baralhos · só o 2 é curinga ·', 'Open Buraco · 2 decks · only the 2 is wild ·', 'Buraco abierto · 2 mazos · solo el 2 es comodín ·'],
+['Versão 11/11 · idiomas PT/EN/ES', 'Version 11/11 · languages PT/EN/ES', 'Versión 11/11 · idiomas PT/EN/ES'],
+['Versão ', 'Version ', 'Versión '],
+['Idioma', 'Language', 'Idioma'],
+['Atraso da conexão com o amigo', 'Connection delay to your friend', 'Retraso de la conexión con el amigo'],
+['Dicas', 'Hints', 'Pistas'], ['Modo rápido', 'Fast mode', 'Modo rápido'], ['Som', 'Sound', 'Sonido'],
+// ===== regras =====
+['Regras — Buraco aberto', 'Rules — Open Buraco', 'Reglas — Buraco abierto'],
+['Resumo do que vale neste jogo.', 'A summary of what applies in this game.', 'Resumen de lo que vale en este juego.'],
+['Baralho:', 'Deck:', 'Mazo:'], ['Jogos:', 'Melds:', 'Juegos:'], ['Curinga:', 'Wild:', 'Comodín:'],
+['Canastra limpa:', 'Clean canasta:', 'Canasta limpia:'], ['Suja:', 'Dirty:', 'Sucia:'],
+['Canastra de 500:', '500 canasta:', 'Canasta de 500:'], ['Real:', 'Royal:', 'Real:'],
+['Lixo aberto:', 'Open discard:', 'Descarte abierto:'], ['Morto:', 'Dead hand:', 'Muerto:'],
+['Monte acabou:', 'Stock ran out:', 'Se acabó el mazo:'], ['Batida:', 'Going out:', 'Corte:'],
+['2 baralhos, sem jokers (104 cartas). Cada jogador começa com 11 cartas.', '2 decks, no jokers (104 cards). Each player starts with 11 cards.', '2 mazos, sin jokers (104 cartas). Cada jugador empieza con 11 cartas.'],
+['só sequências do mesmo naipe, com 3 cartas ou mais. O Ás vale 1 ou 14 (A-2-3 ou Q-K-A).', 'only runs of the same suit, with 3 or more cards. The Ace counts as 1 or 14 (A-2-3 or Q-K-A).', 'solo secuencias del mismo palo, de 3 cartas o más. El As vale 1 o 14 (A-2-3 o Q-K-A).'],
+['só o 2, de qualquer naipe, no máximo 1 por jogo. O 2 do mesmo naipe na posição natural (A-2-3, 2-3-4) não é curinga.', 'only the 2, of any suit, at most 1 per meld. A 2 of the same suit in its natural position (A-2-3, 2-3-4) is not wild.', 'solo el 2, de cualquier palo, máximo 1 por juego. El 2 del mismo palo en su posición natural (A-2-3, 2-3-4) no es comodín.'],
+['7+ cartas sem curinga, 200 pontos.', '7+ cards without a wild, 200 points.', '7+ cartas sin comodín, 200 puntos.'],
+['7+ cartas com curinga, 100 pontos.', '7+ cards with a wild, 100 points.', '7+ cartas con comodín, 100 puntos.'],
+['sequência limpa de 13 cartas (2 ao Ás ou Ás ao Rei).', 'clean run of 13 cards (2 to Ace or Ace to King).', 'secuencia limpia de 13 cartas (del 2 al As o del As al Rey).'],
+['Ás ao Ás com 14 cartas, 1.000 pontos.', 'Ace to Ace with 14 cards, 1,000 points.', 'As al As con 14 cartas, 1.000 puntos.'],
+['você pode comprar do monte ou levar o lixo inteiro, e depois descarta uma carta.', 'you can draw from the stock or take the whole discard pile, and then discard a card.', 'puedes robar del mazo o llevarte todo el descarte, y después descartas una carta.'],
+['cada time tem um morto de 11 cartas, pego quando a mão esvazia. Sem pegar o morto, são −100 pontos.', 'each team has a dead hand of 11 cards, taken when your hand empties. If you never take it, it is −100 points.', 'cada equipo tiene un muerto de 11 cartas, que se toma cuando la mano se vacía. Sin tomar el muerto son −100 puntos.'],
+['se o monte esvazia, um morto que ninguém pegou vira o monte e o jogo continua. O time que', 'if the stock runs out, a dead hand nobody took becomes the stock and play goes on. The team that', 'si el mazo se vacía, un muerto que nadie tomó pasa a ser el mazo y el juego sigue. El equipo que'],
+['não pegou', 'did not take', 'no tomó'],
+['o seu morto leva os −100 no fim da queda (se foram os dois mortos, os dois times levam). Se não houver mais morto nenhum, a queda termina sem batida.', 'its dead hand takes the −100 at the end of the round (if both dead hands were left, both teams take it). If no dead hand is left, the round ends without anyone going out.', 'su muerto se lleva los −100 al final de la ronda (si quedaron los dos muertos, los dos equipos se los llevan). Si ya no queda ningún muerto, la ronda termina sin corte.'],
+['exige ter pego o morto e ter ao menos uma canastra limpa (sem curinga). Quem bate ganha +100. Sem canastra limpa você não pode ficar sem cartas.', 'requires having taken the dead hand and having at least one clean canasta (no wild). Whoever goes out gets +100. Without a clean canasta you cannot run out of cards.', 'exige haber tomado el muerto y tener al menos una canasta limpia (sin comodín). Quien corta gana +100. Sin canasta limpia no puedes quedarte sin cartas.'],
+['Entendi', 'Got it', 'Entendido'],
+// ===== jogo: rótulos =====
+['Buraco — Telas do Passado', 'Buraco — Telas do Passado', 'Buraco — Telas do Passado'],
+['NÓS', 'US', 'NOS'], ['ELES', 'THEM', 'ELLOS'],
+['Nós', 'We', 'Nosotros'], ['Eles', 'They', 'Ellos'], ['nós', 'us', 'nosotros'], ['eles', 'them', 'ellos'],
+['Equipe', 'Team', 'Equipo'],
+['ADVERSÁRIOS BATERAM!', 'OPPONENTS WENT OUT!', '¡LOS RIVALES CORTARON!'],
+['ADVERSÁRIOS', 'OPPONENTS', 'RIVALES'], ['Adversários', 'Opponents', 'Rivales'],
+['Adversário 1', 'Opponent 1', 'Rival 1'], ['Adversário 2', 'Opponent 2', 'Rival 2'], ['Adversário', 'Opponent', 'Rival'],
+['Adv. 1', 'Opp. 1', 'Riv. 1'], ['Adv. 2', 'Opp. 2', 'Riv. 2'], ['ADV2', 'OPP2', 'RIV2'], ['ADV', 'OPP', 'RIV'], ['PARC', 'PTN', 'COM'],
+['Seu Parceiro', 'Your Partner', 'Tu compañero'], ['Parceiro', 'Partner', 'Compañero'],
+['SUA EQUIPE BATEU!', 'YOUR TEAM WENT OUT!', '¡TU EQUIPO CORTÓ!'],
+['SUA EQUIPE', 'YOUR TEAM', 'TU EQUIPO'], ['Sua equipe', 'Your team', 'Tu equipo'],
+['NOSSA EQUIPE', 'OUR TEAM', 'NUESTRO EQUIPO'], ['NOSSOS JOGOS', 'OUR MELDS', 'NUESTROS JUEGOS'],
+['JOGOS DOS ADVERSÁRIOS', "OPPONENTS' MELDS", 'JUEGOS DE LOS RIVALES'],
+['Sua equipe não possui jogos na mesa.', 'Your team has no melds on the table.', 'Tu equipo no tiene juegos en la mesa.'],
+['Nenhum jogo baixado ainda', 'No melds laid down yet', 'Ningún juego bajado todavía'],
+['VOCÊS PODEM BATER', 'YOU CAN GO OUT', 'PUEDEN CORTAR'],
+['PODE BATER', 'CAN GO OUT', 'PUEDE CORTAR'],
+['VOCÊ', 'YOU', 'TÚ'], ['Você', 'You', 'Tú'],
+['MONTE', 'STOCK', 'MAZO'], ['LIXO', 'DISCARD', 'DESCARTE'], ['MORTOS', 'DEAD HANDS', 'MUERTOS'],
+['Mesa', 'Table', 'Mesa'], ['Mão', 'Hand', 'Mano'],
+['Menu', 'Menu', 'Menú'], ['Regras', 'Rules', 'Reglas'],
+['Sair', 'Leave', 'Salir'], ['Fechar', 'Close', 'Cerrar'], ['Cancelar', 'Cancel', 'Cancelar'], ['Confirmar', 'Confirm', 'Confirmar'],
+['Copiar link', 'Copy link', 'Copiar enlace'], ['Limpar', 'Clear', 'Limpiar'], ['Encaixar', 'Attach', 'Agregar'],
+['Baixar sequência', 'Lay down run', 'Bajar secuencia'],
+['Organizar mão', 'Sort hand', 'Ordenar mano'],
+['Ver lixo', 'View discard', 'Ver descarte'], ['Ver mesa', 'View table', 'Ver mesa'], ['Ver resultado', 'View result', 'Ver resultado'],
+['Status da partida', 'Match status', 'Estado de la partida'],
+['Selecione cartas e toque num jogo para encaixar', 'Select cards and tap a meld to attach', 'Selecciona cartas y toca un juego para agregar'],
+['Vazio', 'Empty', 'Vacío'],
+['Cartas: ', 'Cards: ', 'Cartas: '],
+['Vez: ', 'Turn: ', 'Turno: '],
+['Vez de ', 'Turn of ', 'Turno de '],
+['Vez do seu amigo: baixar ou descartar.', "Your friend's turn: lay down or discard.", 'Turno de tu amigo: bajar o descartar.'],
+['Vez do seu amigo...', "Your friend's turn...", 'Turno de tu amigo...'],
+['① Comprar', '① Draw', '① Robar'], ['② Baixar ou encaixar', '② Lay down or attach', '② Bajar o agregar'], ['③ Descartar', '③ Discard', '③ Descartar'],
+['Você comprou: ', 'You drew: ', 'Robaste: '],
+['Você comprou', 'You drew', 'Robaste'],
+['Você pegou o lixo com ', 'You took the discard pile with ', 'Te llevaste el descarte con '],
+['PEGAR O LIXO?', 'TAKE THE DISCARD PILE?', '¿LLEVAR EL DESCARTE?'],
+['Você vai adicionar ', 'You will add ', 'Vas a agregar '],
+[' carta(s) à sua mão. Confirmar?', ' card(s) to your hand. Confirm?', ' carta(s) a tu mano. ¿Confirmar?'],
+[' carta(s). A última da fila é a que está por cima.', ' card(s). The last one in the row is the top card.', ' carta(s). La última de la fila es la de arriba.'],
+['O lixo está vazio!', 'The discard pile is empty!', '¡El descarte está vacío!'],
+['O lixo está vazio.', 'The discard pile is empty.', 'El descarte está vacío.'],
+// ===== mensagens de vez =====
+['Sua vez! Compre do monte ou do lixo.', 'Your turn! Draw from the stock or the discard pile.', '¡Tu turno! Roba del mazo o del descarte.'],
+['Sua vez! Compre do monte ou pegue o lixo.', 'Your turn! Draw from the stock or take the discard pile.', '¡Tu turno! Roba del mazo o llévate el descarte.'],
+['Sua vez! Baixe, encaixe ou descarte.', 'Your turn! Lay down, attach or discard.', '¡Tu turno! Baja, agrega o descarta.'],
+['Sua vez!', 'Your turn!', '¡Tu turno!'],
+['Ainda não é a sua vez. Você pode ir escolhendo as cartas.', "It is not your turn yet. You can start picking your cards.", 'Todavía no es tu turno. Puedes ir eligiendo las cartas.'],
+['Não é a sua vez!', 'It is not your turn!', '¡No es tu turno!'],
+['Primeiro compre do monte ou do lixo.', 'First draw from the stock or the discard pile.', 'Primero roba del mazo o del descarte.'],
+['Compre uma carta antes de baixar!', 'Draw a card before laying down!', '¡Roba una carta antes de bajar!'],
+['Compre uma carta antes de descartar!', 'Draw a card before discarding!', '¡Roba una carta antes de descartar!'],
+['Você já comprou nesta rodada!', 'You already drew this turn!', '¡Ya robaste en esta ronda!'],
+['Selecione 1 carta para descartar!', 'Select 1 card to discard!', '¡Selecciona 1 carta para descartar!'],
+['Selecione exatamente 1 carta para descartar!', 'Select exactly 1 card to discard!', '¡Selecciona exactamente 1 carta para descartar!'],
+['Selecione no mínimo 3 cartas em sequência!', 'Select at least 3 cards in a run!', '¡Selecciona al menos 3 cartas en secuencia!'],
+['Sequência inválida! Devem ser cartas do mesmo naipe em ordem numérica.', 'Invalid run! Cards must be of the same suit in numerical order.', '¡Secuencia inválida! Deben ser cartas del mismo palo en orden numérico.'],
+['Sequência baixada com sucesso!', 'Run laid down!', '¡Secuencia bajada con éxito!'],
+['Cartas encaixadas com sucesso!', 'Cards attached!', '¡Cartas agregadas con éxito!'],
+['Cartas encaixadas!', 'Cards attached!', '¡Cartas agregadas!'],
+['As cartas não encaixam em nenhum dos seus jogos.', 'The cards do not fit any of your melds.', 'Las cartas no encajan en ninguno de tus juegos.'],
+['Ação inválida.', 'Invalid action.', 'Acción inválida.'],
+['Sem canastra limpa você não pode ficar sem cartas: guarde pelo menos 2 cartas antes de descartar.', 'Without a clean canasta you cannot run out of cards: keep at least 2 cards before discarding.', 'Sin canasta limpia no puedes quedarte sin cartas: guarda al menos 2 cartas antes de descartar.'],
+['Sem canastra limpa você não pode ficar sem cartas.', 'Without a clean canasta you cannot run out of cards.', 'Sin canasta limpia no puedes quedarte sin cartas.'],
+['Carta selecionada para descarte: ', 'Card selected to discard: ', 'Carta seleccionada para descartar: '],
+[' selecionada: toque em Descartar, ou num jogo seu na mesa para encaixar.', ' selected: tap Discard, or one of your melds on the table to attach.', ' seleccionada: toca Descartar, o un juego tuyo en la mesa para agregar.'],
+['Escolha 1 carta para descartar ou encaixar, ou 3 ou mais para baixar um jogo.', 'Pick 1 card to discard or attach, or 3 or more to lay down a meld.', 'Elige 1 carta para descartar o agregar, o 3 o más para bajar un juego.'],
+['2 cartas: selecione mais 1 (mínimo 3) para Baixar sequência, ou toque num jogo seu para encaixar.', '2 cards: select 1 more (minimum 3) to Lay down run, or tap one of your melds to attach.', '2 cartas: selecciona 1 más (mínimo 3) para Bajar secuencia, o toca un juego tuyo para agregar.'],
+[' cartas ainda não formam um jogo (precisa ser sequência do mesmo naipe, em ordem).', ' cards do not form a meld yet (it must be a run of the same suit, in order).', ' cartas aún no forman un juego (debe ser una secuencia del mismo palo, en orden).'],
+[' cartas formam um jogo válido: toque em Baixar sequência.', ' cards form a valid meld: tap Lay down run.', ' cartas forman un juego válido: toca Bajar secuencia.'],
+['Jogo (', 'Meld (', 'Juego ('],
+// ===== dicas / assistência =====
+['Dicas desligadas (toque para ligar)', 'Hints off (tap to turn on)', 'Pistas apagadas (toca para encender)'],
+['Dicas ligadas (avisa descarte arriscado)', 'Hints on (warns about risky discards)', 'Pistas encendidas (avisa de descartes arriesgados)'],
+['💡 Dicas desligadas.', '💡 Hints off.', '💡 Pistas apagadas.'],
+['💡 Dicas ligadas: aviso quando um descarte encaixa num jogo dos adversários.', '💡 Hints on: a warning when a discard fits an opponents\' meld.', '💡 Pistas encendidas: aviso cuando un descarte encaja en un juego de los rivales.'],
+[' ⚠️ Dica: essa carta encaixa num jogo dos adversários; se descartar, eles podem pegar o lixo.', ' ⚠️ Hint: this card fits an opponents\' meld; if you discard it, they can take the discard pile.', ' ⚠️ Pista: esta carta encaja en un juego de los rivales; si la descartas, pueden llevarse el descarte.'],
+['Modo rápido desligado (toque para ligar)', 'Fast mode off (tap to turn on)', 'Modo rápido apagado (toca para encender)'],
+['Modo rápido ligado (IA joga mais depressa)', 'Fast mode on (the AI plays faster)', 'Modo rápido encendido (la IA juega más rápido)'],
+['⚡ Modo rápido desligado.', '⚡ Fast mode off.', '⚡ Modo rápido apagado.'],
+['⚡ Modo rápido ligado: a IA joga mais depressa e as animações ficam curtas.', '⚡ Fast mode on: the AI plays faster and animations are short.', '⚡ Modo rápido encendido: la IA juega más rápido y las animaciones son cortas.'],
+['Som desligado', 'Sound off', 'Sonido apagado'], ['Som ligado (toque para silenciar)', 'Sound on (tap to mute)', 'Sonido encendido (toca para silenciar)'],
+['💡 Perto de sequência: ', '💡 Close to a run: ', '💡 Cerca de una secuencia: '],
+['acompanhar sequências incompletas', 'follow incomplete runs', 'seguir secuencias incompletas'],
+['quase em sequência', 'almost a run', 'casi en secuencia'],
+[' (falta ', ' (missing ', ' (falta '], [' ou ', ' or ', ' o '],
+['👤 Parceiro já comprou; falta descartar.', '👤 Partner already drew; still has to discard.', '👤 El compañero ya robó; falta descartar.'],
+['👤 Vez do parceiro: ele vai comprar.', "👤 Partner's turn: about to draw.", '👤 Turno del compañero: va a robar.'],
+['👤 amigo', '👤 friend', '👤 amigo'], ['🔌 fora · 🤖 IA', '🔌 away · 🤖 AI', '🔌 fuera · 🤖 IA'], ['🤖 IA', '🤖 AI', '🤖 IA'],
+['PERTO DE BATER', 'CLOSE TO GOING OUT', 'CERCA DE CORTAR'], ['CUIDADO!', 'WATCH OUT!', '¡CUIDADO!'],
+[' · ainda sem canasta limpa', ' · no clean canasta yet', ' · aún sin canasta limpia'],
+['ainda sem canasta limpa', 'no clean canasta yet', 'aún sin canasta limpia'],
+['Canastra limpa ✓', 'Clean canasta ✓', 'Canasta limpia ✓'], ['Canastra limpa ✗', 'Clean canasta ✗', 'Canasta limpia ✗'],
+['Morto ', 'Dead hand ', 'Muerto '],
+[' está com ', ' has ', ' tiene '], [' Pode bater!', ' Can go out!', ' ¡Puede cortar!'],
+[' Ainda sem canastra limpa/morto.', ' Still no clean canasta/dead hand.', ' Todavía sin canasta limpia/muerto.'],
+// ===== jogadas da IA / log =====
+['Última jogada: ', 'Last move: ', 'Última jugada: '],
+['comprou do monte', 'drew from the stock', 'robó del mazo'],
+['pegou o lixo (', 'took the discard pile (', 'se llevó el descarte ('],
+['descartou ', 'discarded ', 'descartó '],
+['baixou ', 'laid down ', 'bajó '],
+['encaixou ', 'attached ', 'agregó '],
+['pegou o morto', 'took the dead hand', 'tomó el muerto'],
+[' pegou o Morto!', ' took the dead hand!', ' tomó el muerto!'],
+[' pegou o morto!', ' took the dead hand!', ' tomó el muerto!'],
+[' bateu!', ' went out!', ' ¡cortó!'], ['BATEU!', 'WENT OUT!', '¡CORTÓ!'],
+['assumiu a vez do amigo', "took over the friend's turn", 'asumió el turno del amigo'],
+['Nova Queda iniciada! ', 'New round started! ', '¡Nueva ronda iniciada! '], [' começa.', ' starts.', ' empieza.'],
+['Nova partida', 'New match', 'Nueva partida'], ['Nova queda!', 'New round!', '¡Nueva ronda!'],
+// ===== fim da queda / resumo =====
+['FIM DA QUEDA (MONTE VAZIO)', 'END OF ROUND (STOCK EMPTY)', 'FIN DE LA RONDA (MAZO VACÍO)'],
+['FIM DA QUEDA', 'END OF ROUND', 'FIN DE LA RONDA'],
+['Queda encerrada', 'Round over', 'Ronda terminada'],
+['QUEDA EMPATADA', 'ROUND TIED', 'RONDA EMPATADA'],
+['VENCEU A PARTIDA!', 'WON THE MATCH!', '¡GANÓ LA PARTIDA!'], ['PERDEU A PARTIDA', 'LOST THE MATCH', 'PERDIÓ LA PARTIDA'],
+['VENCEU A QUEDA!', 'WON THE ROUND!', '¡GANÓ LA RONDA!'], ['PERDEU A QUEDA', 'LOST THE ROUND', 'PERDIÓ LA RONDA'],
+['Contagem da queda e placar geral.', 'Round count and overall score.', 'Conteo de la ronda y marcador general.'],
+['Total da queda', 'Round total', 'Total de la ronda'],
+['Placar geral', 'Overall score', 'Marcador general'],
+['Próxima queda', 'Next round', 'Próxima ronda'],
+['Canastras', 'Canastas', 'Canastas'], ['Batida', 'Going out', 'Corte'],
+['(Queda: ', '(Round: ', '(Ronda: '],
+[' · sem morto −100', ' · no dead hand −100', ' · sin muerto −100'],
+['Monte vazio — queda encerrada', 'Stock empty — round over', 'Mazo vacío — ronda terminada'],
+['Monte vazio:', 'Stock empty:', 'Mazo vacío:'],
+[' ninguém bateu. A queda foi encerrada e cada time perde os pontos das cartas que sobraram na mão.', ' nobody went out. The round is over and each team loses the points of the cards left in hand.', ' nadie cortó. La ronda terminó y cada equipo pierde los puntos de las cartas que quedaron en la mano.'],
+[' bateu: ficou sem cartas, já tinha pego o morto e a equipe tem ', ' went out: ran out of cards, had already taken the dead hand and the team has ', ' cortó: se quedó sin cartas, ya había tomado el muerto y el equipo tiene '],
+['. Bônus de batida: +100.', '. Going-out bonus: +100.', '. Bono de corte: +100.'],
+['Cartas da canastra: ', 'Canasta cards: ', 'Cartas de la canasta: '],
+[' de ', ' from ', ' de '], [' a ', ' to ', ' a '],
+[' cartas, sem curinga)', ' cards, no wild)', ' cartas, sin comodín)'],
+['O monte acabou e ', 'The stock ran out and ', 'Se acabó el mazo y '],
+[' morto virou monte.', ' dead hand became the stock.', ' muerto pasó a ser el mazo.'],
+[' mortos viraram monte.', ' dead hands became the stock.', ' muertos pasaron a ser el mazo.'],
+[' morto ficou na mesa sem ser pego.', ' dead hand was left on the table untaken.', ' muerto quedó en la mesa sin tomar.'],
+[' mortos ficaram na mesa sem ser pegos.', ' dead hands were left on the table untaken.', ' muertos quedaron en la mesa sin tomar.'],
+['Registro do morto: ', 'Dead hand log: ', 'Registro del muerto: '],
+['⚠️ O registro do morto foi corrigido automaticamente (avise o Claude).', '⚠️ The dead hand log was corrected automatically (tell Claude).', '⚠️ El registro del muerto se corrigió automáticamente (avisa a Claude).'],
+[': jogada ', ': move ', ': jugada '],
+['Canastras: ', 'Canastas: ', 'Canastas: '],
+[' limpas e ', ' clean and ', ' limpias y '], [' limpa e ', ' clean and ', ' limpia y '],
+[' sujas', ' dirty', ' sucias'], [' suja', ' dirty', ' sucia'],
+['não pegou (−100)', 'not taken (−100)', 'no tomado (−100)'],
+['não pegou', 'did not take', 'no tomó'],
+['✓ pegou', '✓ taken', '✓ tomado'], ['✓ da equipe', "✓ team's", '✓ del equipo'], ['✓ pego', '✓ taken', '✓ tomado'], ['✓ ', '✓ ', '✓ '],
+['pegou (', 'took (', 'tomó ('], ['pegou', 'took', 'tomó'],
+['Acabou o monte: um morto virou monte (quem não pegou o morto perde 100)', 'Stock ran out: a dead hand became the stock (whoever did not take theirs loses 100)', 'Se acabó el mazo: un muerto pasó a ser el mazo (quien no tomó el suyo pierde 100)'],
+['O monte acabou: um morto virou o novo monte!', 'The stock ran out: a dead hand became the new stock!', '¡Se acabó el mazo: un muerto pasó a ser el nuevo mazo!'],
+['O monte acabou! A queda foi encerrada.', 'The stock ran out! The round is over.', '¡Se acabó el mazo! La ronda terminó.'],
+['O monte de compras acabou! A queda foi encerrada.', 'The draw stock ran out! The round is over.', '¡Se acabó el mazo de robo! La ronda terminó.'],
+['Acabou o monte: um morto virou monte', 'Stock ran out: a dead hand became the stock', 'Se acabó el mazo: un muerto pasó a ser el mazo'],
+['Eles ficaram sem cartas com canastra limpa.', 'They ran out of cards with a clean canasta.', 'Se quedaron sin cartas con canasta limpia.'],
+['Parabéns! Canastra limpa e mão vazia.', 'Congratulations! Clean canasta and empty hand.', '¡Felicidades! Canasta limpia y mano vacía.'],
+['Canastra Limpa', 'Clean Canasta', 'Canasta Limpia'], ['Canastra Real', 'Royal Canasta', 'Canasta Real'], ['Canastra Suja', 'Dirty Canasta', 'Canasta Sucia'], ['Canastra de 500', '500 Canasta', 'Canasta de 500'],
+['canastra limpa', 'clean canasta', 'canasta limpia'],
+['pontos de placar', 'score points', 'puntos de marcador'],
+// ===== histórico / placar =====
+['vitórias', 'wins', 'victorias'], ['derrotas', 'losses', 'derrotas'], ['aproveitamento', 'win rate', 'aprovechamiento'],
+['Nenhuma partida concluída ainda. Chegue à meta para entrar no histórico.', 'No match completed yet. Reach the target to enter the history.', 'Ninguna partida terminada todavía. Llega a la meta para entrar en el historial.'],
+['Placar final: ', 'Final score: ', 'Marcador final: '],
+[' (meta ', ' (target ', ' (meta '], ['). Salvo no seu histórico.', '). Saved to your history.', '). Guardado en tu historial.'],
+['Queda única: ', 'Single round: ', 'Ronda única: '],
+['. Não entra no histórico de partidas.', '. Not counted in the match history.', '. No cuenta en el historial de partidas.'],
+[' · Falta: ', ' · Left: ', ' · Falta: '],
+['Placar ', 'Score ', 'Marcador '],
+['A queda em andamento será perdida. A pontuação das quedas anteriores continua salva.', 'The current round will be lost. The score from previous rounds stays saved.', 'La ronda en curso se perderá. La puntuación de las rondas anteriores sigue guardada.'],
+['Você é o anfitrião: sair fecha a sala e a queda em andamento será perdida.', 'You are the host: leaving closes the room and the current round will be lost.', 'Eres el anfitrión: salir cierra la sala y la ronda en curso se perderá.'],
+['SAIR DA PARTIDA?', 'LEAVE THE MATCH?', '¿SALIR DE LA PARTIDA?'],
+['Morto (pego = sem desconto)', 'Dead hand (taken = no penalty)', 'Muerto (tomado = sin descuento)'],
+// ===== online =====
+['👥 online 2×2', '👥 online 2×2', '👥 en línea 2×2'],
+['Criando a sala…', 'Creating the room…', 'Creando la sala…'],
+['Sala criada: ', 'Room created: ', 'Sala creada: '],
+['Mande este link para o seu amigo. Quando ele entrar, a partida começa', 'Send this link to your friend. When they join, the match starts', 'Manda este enlace a tu amigo. Cuando entre, la partida empieza'],
+['Bora jogar Buraco comigo? Entra na sala: ', 'Want to play Buraco with me? Join the room: ', '¿Jugamos Buraco? Entra a la sala: '],
+['Link copiado!', 'Link copied!', '¡Enlace copiado!'],
+['Link de teste copiado: o amigo entra só pelo caminho por servidor.', 'Test link copied: your friend joins only through the server path.', 'Enlace de prueba copiado: el amigo entra solo por el camino por servidor.'],
+['Copie o link de teste:', 'Copy the test link:', 'Copia el enlace de prueba:'],
+['🔧 Copiar link de teste (só caminho por servidor)', '🔧 Copy test link (server path only)', '🔧 Copiar enlace de prueba (solo camino por servidor)'],
+['MODO TESTE: só o caminho por servidor (sem conexão direta)', 'TEST MODE: server path only (no direct connection)', 'MODO PRUEBA: solo el camino por servidor (sin conexión directa)'],
+['Entrando na sala ', 'Joining room ', 'Entrando a la sala '],
+['Procurando a sala… (', 'Looking for the room… (', 'Buscando la sala… ('],
+['Conectando ao anfitrião.', 'Connecting to the host.', 'Conectando con el anfitrión.'],
+['Aguardando o anfitrião começar a partida…', 'Waiting for the host to start the match…', 'Esperando que el anfitrión empiece la partida…'],
+['Aguardando o anfitrião…', 'Waiting for the host…', 'Esperando al anfitrión…'],
+['Um instante.', 'One moment.', 'Un momento.'],
+['Não deu para entrar', 'Could not join', 'No se pudo entrar'],
+['Sala não encontrada ou o anfitrião saiu. Peça para ele conferir se a tela dele continua aberta e mande o link de novo.', 'Room not found or the host left. Ask them to check that their screen is still open and send the link again.', 'Sala no encontrada o el anfitrión salió. Pídele que revise que su pantalla siga abierta y manda el enlace de nuevo.'],
+['). Se demorar, peça um link novo: quem criou a sala precisa deixar a aba do jogo aberta e, se atualizou a página, a sala antiga deixa de existir.', '). If it takes long, ask for a new link: whoever created the room must keep the game tab open and, if they refreshed the page, the old room no longer exists.', '). Si tarda, pide un enlace nuevo: quien creó la sala debe dejar abierta la pestaña del juego y, si actualizó la página, la sala anterior deja de existir.'],
+['. Ele joga como seu parceiro contra 2 adversários da IA.', '. They play as your partner against 2 AI opponents.', '. Juega como tu compañero contra 2 rivales de la IA.'],
+['Não consegui carregar o módulo de jogo online. Verifique a internet e abra o link de novo.', 'Could not load the online game module. Check your internet and open the link again.', 'No pude cargar el módulo de juego en línea. Revisa tu internet y abre el enlace de nuevo.'],
+['Reconectado ✓ você voltou para a partida.', 'Reconnected ✓ you are back in the match.', 'Reconectado ✓ volviste a la partida.'],
+['A conexão caiu. Tentando voltar para a mesma partida (tentativa ', 'The connection dropped. Trying to get back to the same match (attempt ', 'Se cayó la conexión. Intentando volver a la misma partida (intento '],
+['Você pode voltar depois pelo mesmo link enquanto o anfitrião estiver com a sala aberta.', 'You can come back later with the same link while the host keeps the room open.', 'Puedes volver después con el mismo enlace mientras el anfitrión tenga la sala abierta.'],
+['Sem conexão', 'No connection', 'Sin conexión'],
+['Seu amigo caiu: a IA assumiu o lugar dele até ele voltar (pelo mesmo link).', 'Your friend dropped: the AI took their place until they return (using the same link).', 'Tu amigo se cayó: la IA ocupó su lugar hasta que vuelva (por el mismo enlace).'],
+['Seu amigo voltou: ele joga de novo no lugar da IA.', 'Your friend is back: they play again in place of the AI.', 'Tu amigo volvió: juega de nuevo en lugar de la IA.'],
+['🔌 Seu amigo caiu: a IA joga no lugar dele. Ele volta entrando pelo mesmo link.', '🔌 Your friend dropped: the AI plays in their place. They return through the same link.', '🔌 Tu amigo se cayó: la IA juega en su lugar. Vuelve entrando por el mismo enlace.'],
+['amigo bateu na porta ✓', 'friend knocked on the door ✓', 'el amigo tocó la puerta ✓'],
+['amigo entrou pela retransmissão ✓', 'friend joined through the relay ✓', 'el amigo entró por la retransmisión ✓'],
+['amigo caiu', 'friend dropped', 'amigo caído'],
+['anfitrião', 'host', 'anfitrión'],
+['Diagnóstico:', 'Diagnostics:', 'Diagnóstico:'],
+['caminho por servidor: NÃO carregou (biblioteca bloqueada ou sem internet)', 'server path: did NOT load (library blocked or no internet)', 'camino por servidor: NO cargó (biblioteca bloqueada o sin internet)'],
+['caminho por servidor: biblioteca carregada ✓', 'server path: library loaded ✓', 'camino por servidor: biblioteca cargada ✓'],
+['conexão direta indisponível; usando só a retransmissão', 'direct connection unavailable; using only the relay', 'conexión directa no disponible; usando solo la retransmisión'],
+['retransmissão indisponível (biblioteca não carregou)', 'relay unavailable (library did not load)', 'retransmisión no disponible (la biblioteca no cargó)'],
+['retransmissão: erro de rede', 'relay: network error', 'retransmisión: error de red'],
+['retransmissão: servidor ', 'relay: server ', 'retransmisión: servidor '],
+['retransmissão: tentando servidor ', 'relay: trying server ', 'retransmisión: probando servidor '],
+['retransmissão ', 'relay ', 'retransmisión '],
+['servidor de salas: conectado ✓ (sala ', 'room server: connected ✓ (room ', 'servidor de salas: conectado ✓ (sala '],
+['servidor de salas: conectado ✓, procurando a sala ', 'room server: connected ✓, looking for room ', 'servidor de salas: conectado ✓, buscando la sala '],
+['servidor de salas: reconectando…', 'room server: reconnecting…', 'servidor de salas: reconectando…'],
+['erro do servidor de salas: ', 'room server error: ', 'error del servidor de salas: '],
+['conectado com o anfitrião ✓ (', 'connected to the host ✓ (', 'conectado con el anfitrión ✓ ('],
+[' conectado ✓, chamando o anfitrião', ' connected ✓, calling the host', ' conectado ✓, llamando al anfitrión'],
+[' (direto, forçando retransmissão TURN)', ' (direct, forcing TURN relay)', ' (directo, forzando retransmisión TURN)'],
+[' (por servidor)', ' (via server)', ' (por servidor)'],
+['por servidor', 'via server', 'por servidor'],
+[' conexão: ', ' connection: ', ' conexión: '],
+[' de onde pararam (', ' from where they stopped (', ' desde donde quedaron ('],
+[': conectada ✓', ': connected ✓', ': conectada ✓'], [': erro', ': error', ': error'],
+['🔔 Sua vez! — Buraco', '🔔 Your turn! — Buraco', '🔔 ¡Tu turno! — Buraco'],
+['WhatsApp', 'WhatsApp', 'WhatsApp'],
+// ===== palavras soltas (por último; frases maiores têm prioridade) =====
+['cartas', 'cards', 'cartas'], ['carta', 'card', 'carta'],
+['jogos', 'melds', 'juegos'], ['jogo', 'meld', 'juego'],
+['mortos', 'dead hands', 'muertos'], ['morto', 'dead hand', 'muerto'],
+['quedas', 'rounds', 'rondas'], ['queda', 'round', 'ronda'],
+['canastras', 'canastas', 'canastas'], ['canastra', 'canasta', 'canasta'],
+['lixo', 'discard pile', 'descarte'], ['monte', 'stock', 'mazo'],
+['IA', 'AI', 'IA']
+];
+
+const I18N_LOCALES = { pt: 'pt-BR', en: 'en-US', es: 'es-AR' };
+let appLang = 'pt';
+try { const s = localStorage.getItem('buracoLang'); if (s && I18N_LOCALES[s]) appLang = s; else { const n = (navigator.language || 'pt').slice(0, 2).toLowerCase(); if (n === 'en' || n === 'es') appLang = n; } } catch (e) {}
+window.__locale = I18N_LOCALES[appLang];
+
+const I18N_IDX = { en: {}, es: {} };
+(function () {
+    const ci = { en: 1, es: 2 };
+    ['en', 'es'].forEach(L => {
+        const seen = new Set();
+        I18N_ROWS.forEach(r => {
+            const pt = r[0]; if (seen.has(pt)) return; seen.add(pt);
+            const ch = pt[0];
+            (I18N_IDX[L][ch] = I18N_IDX[L][ch] || []).push({ pt, t: r[ci[L]], sL: /[\p{L}\p{N}]/u.test(pt[0]), eL: /[\p{L}\p{N}]/u.test(pt[pt.length - 1]) });
+        });
+        Object.keys(I18N_IDX[L]).forEach(k => I18N_IDX[L][k].sort((a, b) => b.pt.length - a.pt.length));
+    });
+})();
+
+const I18N_CACHE = { en: new Map(), es: new Map() };
+const I18N_W = /[\p{L}\p{N}]/u;
+function tr(s, L) {
+    L = L || appLang;
+    if (L === 'pt' || !s) return s;
+    const cache = I18N_CACHE[L];
+    let hit = cache.get(s); if (hit !== undefined) return hit;
+    const idx = I18N_IDX[L]; let out = '', i = 0;
+    while (i < s.length) {
+        const list = idx[s[i]]; let m = null;
+        if (list) {
+            for (let k = 0; k < list.length; k++) {
+                const e = list[k];
+                if (!s.startsWith(e.pt, i)) continue;
+                if (e.sL && i > 0 && I18N_W.test(s[i - 1])) continue;
+                const nx = s[i + e.pt.length];
+                if (e.eL && nx && I18N_W.test(nx)) continue;
+                m = e; break;
+            }
+        }
+        if (m) { out += m.t; i += m.pt.length; } else { out += s[i]; i++; }
+    }
+    if (cache.size > 4000) cache.clear();
+    cache.set(s, out);
+    return out;
+}
+function T(s) { return tr(s); }
+
+// ---- aplicação no DOM ----
+const i18nText = new WeakMap();   // nó de texto -> {o: original em PT, t: texto já traduzido}
+const i18nAttr = new WeakMap();   // elemento -> {attr: {o, t}}
+const I18N_ATTRS = ['title', 'placeholder', 'aria-label', 'alt'];
+let i18nObs = null, i18nBusy = false;
+
+function i18nNode(n) {
+    if (n.nodeType === 3) {
+        const p = n.parentNode; if (p && (p.nodeName === 'SCRIPT' || p.nodeName === 'STYLE')) return;
+        let rec = i18nText.get(n);
+        if (rec && n.data === rec.t) { if (appLang === 'pt') { n.data = rec.o; i18nText.delete(n); } else if (rec.l !== appLang) { rec.t = tr(rec.o); rec.l = appLang; n.data = rec.t; } return; }
+        const o = n.data; const t = tr(o);
+        if (t !== o) { i18nText.set(n, { o, t, l: appLang }); n.data = t; } else if (rec) i18nText.delete(n);
+    } else if (n.nodeType === 1) {
+        if (n.nodeName === 'SCRIPT' || n.nodeName === 'STYLE') return;
+        I18N_ATTRS.forEach(a => i18nAttrOne(n, a));
+        for (let c = n.firstChild; c; c = c.nextSibling) i18nNode(c);
+    }
+}
+function i18nAttrOne(el, a) {
+    if (!el.hasAttribute || !el.hasAttribute(a)) return;
+    let m = i18nAttr.get(el); const cur = el.getAttribute(a);
+    const rec = m && m[a];
+    if (rec && cur === rec.t && rec.l === appLang) return;
+    const o = (rec && cur === rec.t) ? rec.o : cur;
+    const t = tr(o);
+    if (appLang === 'pt' || t === o) { if (rec) { delete m[a]; } if (cur !== o) el.setAttribute(a, o); return; }
+    if (!m) { m = {}; i18nAttr.set(el, m); }
+    m[a] = { o, t, l: appLang };
+    el.setAttribute(a, t);
+}
+function i18nRun(root) { i18nBusy = true; try { i18nNode(root); } catch (e) {} i18nBusy = false; }
+function i18nStart() {
+    if (!i18nObs) {
+        i18nObs = new MutationObserver(muts => {
+            if (appLang === 'pt') return;
+            i18nObs.disconnect();
+            try {
+                muts.forEach(m => {
+                    if (m.type === 'characterData') i18nNode(m.target);
+                    else if (m.type === 'attributes') i18nAttrOne(m.target, m.attributeName);
+                    else m.addedNodes.forEach(n => i18nNode(n));
+                });
+            } catch (e) {}
+            i18nObs.observe(document.documentElement, I18N_OPTS);
+        });
+    }
+    i18nObs.disconnect();
+    i18nObs.observe(document.documentElement, I18N_OPTS);
+}
+const I18N_OPTS = { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: I18N_ATTRS };
+
+function setLang(L, silent) {
+    if (!I18N_LOCALES[L]) L = 'pt';
+    appLang = L; window.__locale = I18N_LOCALES[L];
+    try { localStorage.setItem('buracoLang', L); } catch (e) {}
+    document.documentElement.lang = L === 'pt' ? 'pt-BR' : L;
+    if (i18nObs) i18nObs.disconnect();
+    i18nRun(document.documentElement);
+    document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('active', b.getAttribute('data-lang') === L));
+    const lb = document.getElementById('langBtn'); if (lb) lb.innerHTML = '<span class="lg">🌐 </span>' + L.toUpperCase();
+    if (L !== 'pt') i18nStart();
+    // textos montados em JS que guardam valor próprio (título da aba, números formatados)
+    try { if (typeof updateUI === 'function' && document.getElementById('game') && !document.getElementById('game').classList.contains('hidden')) updateUI(); } catch (e) {}
+    try { if (typeof renderHistory === 'function') renderHistory(); } catch (e) {}
+    try { if (typeof renderMenuHistory === 'function') renderMenuHistory(); } catch (e) {}
+}
+function cycleLang() { setLang(appLang === 'pt' ? 'en' : appLang === 'en' ? 'es' : 'pt'); }
+
+// título da aba (notificação "Sua vez")
+(function () {
+    const d = Object.getOwnPropertyDescriptor(Document.prototype, 'title');
+    if (d && d.set) Object.defineProperty(document, 'title', { configurable: true, get() { return d.get.call(document); }, set(v) { d.set.call(document, tr(String(v))); } });
+})();
+
+document.addEventListener('DOMContentLoaded', () => { setLang(appLang); });
+if (document.readyState !== 'loading') setLang(appLang);
 
         function logStatus(msg) {
             if (netCapture) { netCapture.push(msg); return; }
