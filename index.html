@@ -68,7 +68,9 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .card.back::before{content:'';position:absolute;inset:calc(var(--card-w)*.06);border:1px solid rgba(243,234,210,.65);border-radius:calc(var(--card-w)*.07)}
 .card.back .medal{position:absolute;left:50%;top:50%;width:46%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff0b8,#e9b949 55%,#a8761a);display:grid;place-items:center;color:#3a2506;font-weight:900;font-size:.72em;box-shadow:0 1px 4px rgba(0,0,0,.6)}
 .card .count{position:absolute;left:50%;bottom:.5em;transform:translateX(-50%);background:rgba(0,0,0,.78);color:var(--gold);font-family:var(--ui);font-weight:800;font-size:.62em;padding:.12em .6em;border-radius:1em;border:1px solid rgba(233,185,73,.5)}
-.card.selected{transform:translateY(-22px)!important;box-shadow:0 0 0 2px var(--gold),0 14px 22px rgba(233,185,73,.45)!important;z-index:60!important}
+.card.selected{transform:translateY(-22px)!important;box-shadow:0 0 0 3px var(--gold),0 14px 22px rgba(233,185,73,.55)!important;z-index:60!important;filter:brightness(1.08)}
+.card[role="button"]{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.card[role="button"]:focus-visible{outline:3px solid #fff0b8;outline-offset:3px;z-index:61!important}
 .card.drawn{box-shadow:0 0 0 2px #34d399,0 0 14px rgba(52,211,153,.7),0 2px 7px rgba(0,0,0,.5)}
 .card.wild{box-shadow:0 0 0 2px #a855f7,0 2px 7px rgba(0,0,0,.5)}
 .card.fly-in{animation:flyIn .55s cubic-bezier(.2,.9,.25,1.1) both}
@@ -248,6 +250,9 @@ body.fast *{transition-duration:.06s!important}
 .endbar button{padding:10px 16px;border-radius:11px;font-weight:800;font-size:13px;border:1px solid}
 .sum-note{margin:0 0 12px;padding:10px 12px;border-radius:12px;text-align:left;font-size:12.5px;line-height:1.5;background:rgba(233,185,73,.1);border:1px solid rgba(233,185,73,.4);color:#f3e6bd}
 .sum-note b{color:var(--gold-hi)}
+.ai-reading{margin-top:9px;padding-top:8px;border-top:1px solid rgba(233,185,73,.25)}
+.ai-reading strong{display:block;margin-bottom:4px;color:var(--gold-hi)}
+.ai-reading ul{margin:0;padding-left:18px}.ai-reading li{margin:3px 0}
 .sum-col .ln.pos{color:#6ee7b7}
 .sum-hand{display:flex;flex-wrap:wrap;gap:2px;margin-top:6px;--card-w:20px;font-size:0}
 .sum-hand .card{margin-right:-8px}
@@ -355,6 +360,9 @@ body.fast *{transition-duration:.06s!important}
   .chip{font-size:9.5px;padding:2px 6px}
   .hand{padding:24px 10px 6px}
   .hand-inner.wrap{gap:8px 5px}
+  .hand-inner.wrap .card{min-width:48px;min-height:68px}
+  .card.selected{transform:translateY(-16px)!important}
+  .actions .btn.util#btnClear{font-size:10px;letter-spacing:.01em}
   .fd{margin:2px 0;padding:3px 8px;font-size:11px}
 }
 @media(max-height:520px) and (orientation:landscape){
@@ -528,7 +536,7 @@ body.fast *{transition-duration:.06s!important}
       <div class="status">
         <div class="st">Status da partida</div>
         <div id="friendDown" class="fd hidden"></div>
-        <div id="statusMessage" class="sm">Sua vez! Compre do monte ou do lixo.</div>
+        <div id="statusMessage" class="sm" role="status" aria-live="polite" aria-atomic="true">Sua vez! Compre do monte ou do lixo.</div>
         <div id="turnIndicator" class="tv">Vez: Você</div>
         <div id="lastPlay" class="lp"></div>
       </div>
@@ -550,7 +558,7 @@ body.fast *{transition-duration:.06s!important}
         <button class="btn meld" onclick="playerMeldsSelected()">Baixar sequência</button>
         <button class="btn attach" onclick="playerAttachSelected()">Encaixar</button>
         <button class="btn disc" onclick="playerDiscardSelected()">Descartar</button>
-        <button class="btn util" id="btnClear" onclick="clearSelection()">Limpar</button>
+        <button class="btn util" id="btnClear" onclick="clearSelection()" aria-label="Limpar seleção" title="Limpar as cartas selecionadas">Limpar</button>
         <button class="btn util" onclick="sortPlayerHand()">Organizar mão</button>
         <button class="btn util" onclick="showPileModal()">Ver lixo</button>
       </div>
@@ -699,6 +707,7 @@ body.fast *{transition-duration:.06s!important}
         const GAME_VARIANT = 'BURACO_ABERTO';
         
         const SUITS = ['♠', '♥', '♣', '♦'];
+        const SUIT_NAMES = { '♠': 'espadas', '♥': 'copas', '♣': 'paus', '♦': 'ouros' };
         const SUIT_COLORS = { '♠': 'suit-black', '♣': 'suit-black', '♥': 'suit-red', '♦': 'suit-red' };
         const VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; // 2 até Ás (14)
         
@@ -727,7 +736,8 @@ const BRAND = { name: 'Telas do Passado', logoSrc: '' };
 let flyInIds = new Set();
 let lastDiscardTopId = null;
 let handSortMode = 'value'; // próxima ordenação ao clicar em "Organizar mão"
-let aiTimer = null;
+        let aiTimer = null;
+        let aiDecisionHistory = [];
 
 function scheduleAI() {
     clearTimeout(aiTimer);
@@ -890,7 +900,7 @@ function startNextRound() {
             roundScores = [0, 0];
             lastDrawnCardId = null;
             rodadaEncerrada = false;
-            roundScored = false; lastCounts = {}; aiKnown = {}; aiEmptyDeckPileTakes = 0; aiPileStreak = 0; lastHitter = null; mortoBy = {}; mortoSeat = {}; deadRefills = 0; setLastPlay('');
+            roundScored = false; lastCounts = {}; aiKnown = {}; aiEmptyDeckPileTakes = 0; aiPileStreak = 0; lastHitter = null; mortoBy = {}; mortoSeat = {}; deadRefills = 0; aiDecisionHistory = []; setLastPlay('');
             document.getElementById('endBar').classList.add('hidden');
 
             players = [
@@ -1005,7 +1015,10 @@ function startNextRound() {
                 }
                 inner = idx + center + idxBr;
             }
-            return `<div ${clickAttr} class="${cls.join(' ')}" ${styleHTML}>${inner}</div>`;
+            const interactiveAttrs = onClickFn
+                ? `role="button" tabindex="0" aria-pressed="${isSelected ? 'true' : 'false'}" aria-label="Carta ${getCardLabel(card.value)} de ${SUIT_NAMES[card.suit] || card.suit}${isSelected ? ', selecionada' : ''}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${onClickFn}}"`
+                : '';
+            return `<div ${clickAttr} ${interactiveAttrs} class="${cls.join(' ')}" ${styleHTML}>${inner}</div>`;
         }
 
         
@@ -1121,7 +1134,7 @@ function showDrawnCardNotification(cards) {
                 let per = Math.max(1, Math.floor((avail + gap) / (cw + gap)));
                 if (n > 10 && per < 6 && fit(6) >= 40) per = 6;
                 if (per < 5 && fit(5) >= 44) per = 5;
-                const w = Math.max(40, fit(per));
+                const w = Math.max(handEl.clientWidth < 600 ? 48 : 40, fit(per));
                 handEl.innerHTML = `<div class="hand-inner wrap" style="--card-w:${w}px;width:${per * w + (per - 1) * gap}px">` + hand.map(card =>
                     renderCardHTML(card, `toggleCardSelection(${card.id})`, selectedCards.some(c => c.id === card.id), '', '')
                 ).join('') + '</div>';
@@ -2127,12 +2140,34 @@ function aiTakeTurn(level, ai) {
     aiRefreshKnown();
     const who = aiWho(ai);
     const log = [];
+    let drawReason = '';
+    let discardReason = '';
+    let pickedPileIds = new Set();
+    const saveDecision = () => {
+        const parts = [drawReason, discardReason].filter(Boolean);
+        if (!parts.length) return;
+        aiDecisionHistory.push({ who, text: parts.join(' ') });
+        if (aiDecisionHistory.length > 8) aiDecisionHistory.shift();
+    };
+    const explainDraw = () => {
+        if (choice === 'pile') {
+            const used = [...pickedPileIds].filter(id => !ai.hand.some(c => c.id === id)).length;
+            drawReason = level === 'easy'
+                ? `No Fácil, pegou o lixo por uma regra simples; ${used} carta${used === 1 ? ' foi aproveitada' : 's foram aproveitadas'} nesta vez.`
+                : `Comparou o lixo inteiro com o monte; aproveitou ${used} carta${used === 1 ? '' : 's'} em jogos nesta vez${used ? '' : ' (a decisão veio do potencial calculado para as próximas jogadas)'}.`;
+        } else if (choice === 'deck') {
+            drawReason = level === 'easy'
+                ? 'No Fácil, preferiu o monte pela regra simples do nível.'
+                : 'Preferiu a compra fechada porque o lixo inteiro oferecia menos potencial calculado para a mão.';
+        }
+    };
     let ctx = aiMakeCtx(ai, level);
 
     // 1) compra
     const choice = aiSkipDraw ? 'skip' : aiDecideDraw(ai, level, ctx);
     if (choice === 'pile') {
         const cards = discardPile;
+        pickedPileIds = new Set(cards.map(c => c.id));
         discardPile = [];
         ai.hand.push(...cards);
         aiNotePileTake(ai, cards);
@@ -2167,13 +2202,21 @@ function aiTakeTurn(level, ai) {
             if (st.t === 'new') nMelds++; else nAtt++;
             const before = deadDecksTaken[ai.team];
             checkDeadDeck(ai.team);
-            if (rodadaEncerrada) return;
+            if (rodadaEncerrada) {
+                explainDraw();
+                if (nMelds) log.push(`baixou ${nMelds} jogo${nMelds > 1 ? 's' : ''}`);
+                if (nAtt) log.push(`encaixou ${nAtt} carta${nAtt > 1 ? 's' : ''}`);
+                discardReason = 'A IA bateu antes de precisar descartar.';
+                saveDecision();
+                return;
+            }
             if (!before && deadDecksTaken[ai.team]) { tookMorto = true; log.push('pegou o morto'); break; }
         }
         if (!tookMorto) break;
     }
     if (nMelds) log.push(`baixou ${nMelds} jogo${nMelds > 1 ? 's' : ''}`);
     if (nAtt) log.push(`encaixou ${nAtt} carta${nAtt > 1 ? 's' : ''}`);
+    explainDraw();
 
     // 3) descarte (a vez sempre termina)
     if (!rodadaEncerrada && ai.hand.length > 0) {
@@ -2181,7 +2224,11 @@ function aiTakeTurn(level, ai) {
         const c = ai.hand.splice(idx, 1)[0];
         discardPile.push(c);
         log.push(`descartou ${aiCardName(c)}`);
+        discardReason = level === 'easy'
+            ? `O descarte no Fácil usa uma regra simples com alguma aleatoriedade.`
+            : `Escolheu ${aiCardName(c)} após comparar o potencial das combinações que ficariam na mão e o risco de alimentar os jogos visíveis do adversário.`;
     }
+    saveDecision();
     const txt = `${who} ${log.join(', ')}.`;
     logStatus(txt);
     setLastPlay(txt);
@@ -2242,7 +2289,17 @@ function aiSummaryExtras(winnerTeamIdx, hitter) {
     const lg = t => morteLog[t] ? `${nm(t)}: jogada ${morteLog[t].jogada}` : '';
     const lgs = [0, 1].map(lg).filter(Boolean).join(' · ');
     msg += `<br><small>Morto: ${nm(0)} ${mt(0)} · ${nm(1)} ${mt(1)}${lgs ? '<br>Registro do morto: ' + lgs : ''}${morteHeal.length ? '<br>⚠️ O registro do morto foi corrigido automaticamente (avise o Claude).' : ''}<br>Canastras: ${nm(0)} ${cnt(0)} · ${nm(1)} ${cnt(1)}</small>`;
-    if (note) { note.innerHTML = msg; note.classList.remove('hidden'); }
+    if (note) {
+        note.innerHTML = msg;
+        if (aiDecisionHistory.length) {
+            const section = document.createElement('div'); section.className = 'ai-reading';
+            const heading = document.createElement('strong'); heading.textContent = 'Leitura estratégica da IA nesta queda'; section.appendChild(heading);
+            const list = document.createElement('ul');
+            aiDecisionHistory.slice(-5).forEach(item => { const li = document.createElement('li'); li.textContent = `${item.who}: ${item.text}`; list.appendChild(li); });
+            section.appendChild(list); note.appendChild(section);
+        }
+        note.classList.remove('hidden');
+    }
     const bt = document.getElementById('endBarText');
     if (bt) bt.innerText = byBat ? `${hitter ? seatLabel(hitter) : 'Equipe'} bateu!` : 'Monte vazio — queda encerrada';
     const tst = document.getElementById('toast'); if (tst) tst.classList.add('hidden');
@@ -3191,9 +3248,9 @@ function assistSelMsg() {
     if (!hasDrawn) { logStatus(n ? 'Primeiro compre do monte ou do lixo.' : 'Sua vez! Compre do monte ou do lixo.'); return; }
     let msg;
     if (n === 0) msg = 'Escolha 1 carta para descartar ou encaixar, ou 3 ou mais para baixar um jogo.';
-    else if (n === 1) {
+            else if (n === 1) {
         const c = selectedCards[0];
-        msg = `${getCardLabel(c.value)}${c.suit} selecionada: toque em Descartar, ou num jogo seu na mesa para encaixar.`;
+                msg = `${getCardLabel(c.value)}${c.suit} selecionada. Toque nela de novo para desmarcar; use Limpar para escolher outra. Descartar ou toque num jogo seu para encaixar.`;
         if (dicasOn && assistRisky(c)) msg += ' ⚠️ Dica: essa carta encaixa num jogo dos adversários; se descartar, eles podem pegar o lixo.';
     } else if (n === 2) msg = '2 cartas: selecione mais 1 (mínimo 3) para Baixar sequência, ou toque num jogo seu para encaixar.';
     else {
