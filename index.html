@@ -3077,16 +3077,43 @@ window.addEventListener('DOMContentLoaded', netBoot);
 let sndOn = true, sndCtx = null, sndMaster = null;
 try { sndOn = localStorage.getItem('buracoSom') !== '0'; } catch (e) { }
 
-function sndInit() {
-    if (sndCtx) { if (sndCtx.state === 'suspended') sndCtx.resume(); return; }
+// Celular/tablet: o navegador só libera o áudio em toques "completos" (touchend/click/pointerup),
+// não em touchstart/pointerdown. Por isso escutamos todos e, no 1º toque válido, tocamos um som mudo
+// para destravar. No iPhone/iPad também pedimos o canal de "mídia", para tocar mesmo com a chave do silencioso.
+let sndUnlocked = false, sndHtmlAudio = null;
+function sndMediaSession() {
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { }
     try {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (!AC) return;
-        sndCtx = new AC();
-        sndMaster = sndCtx.createGain(); sndMaster.gain.value = 0.55; sndMaster.connect(sndCtx.destination);
-    } catch (e) { sndCtx = null; }
+        if (!sndHtmlAudio) {
+            // WAV mudo minúsculo: tocar um <audio> dentro do toque coloca o iOS antigo no canal de mídia
+            sndHtmlAudio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+            sndHtmlAudio.setAttribute('playsinline', ''); sndHtmlAudio.loop = false; sndHtmlAudio.volume = 0;
+        }
+        const pr = sndHtmlAudio.play(); if (pr && pr.catch) pr.catch(() => { });
+    } catch (e) { }
 }
-['pointerdown', 'keydown', 'touchstart'].forEach(ev => window.addEventListener(ev, sndInit, { passive: true }));
+function sndInit() {
+    try {
+        if (!sndCtx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            sndMediaSession();
+            sndCtx = new AC();
+            sndMaster = sndCtx.createGain(); sndMaster.gain.value = 0.55; sndMaster.connect(sndCtx.destination);
+        }
+        if (sndCtx.state !== 'running') { const pr = sndCtx.resume(); if (pr && pr.catch) pr.catch(() => { }); }
+        if (!sndUnlocked) {
+            // buffer mudo tocado dentro do gesto: destrava Safari/iOS e Chrome do Android
+            const b = sndCtx.createBuffer(1, 1, 22050), src = sndCtx.createBufferSource();
+            src.buffer = b; src.connect(sndCtx.destination); src.start(0);
+            if (sndCtx.state === 'running') sndUnlocked = true;
+            else if (sndCtx.resume) sndCtx.resume().then(() => { sndUnlocked = sndCtx.state === 'running'; }).catch(() => { });
+        }
+    } catch (e) { }
+}
+['pointerdown', 'pointerup', 'mousedown', 'keydown', 'touchstart', 'touchend', 'click'].forEach(ev => window.addEventListener(ev, sndInit, { passive: true, capture: true }));
+// ao voltar para o jogo (troca de app, tela bloqueada) o áudio fica "suspenso/interrompido": religa no próximo toque
+document.addEventListener('visibilitychange', () => { if (!document.hidden && sndCtx && sndCtx.state !== 'running') { sndUnlocked = false; try { sndCtx.resume().catch(() => { }); } catch (e) { } } });
 
 function sndNoise(dur, filt, freq, q, vol, when, sweepTo) {
     if (!sndCtx) return;
