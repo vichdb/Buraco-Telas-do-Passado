@@ -68,9 +68,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .card.back::before{content:'';position:absolute;inset:calc(var(--card-w)*.06);border:1px solid rgba(243,234,210,.65);border-radius:calc(var(--card-w)*.07)}
 .card.back .medal{position:absolute;left:50%;top:50%;width:46%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff0b8,#e9b949 55%,#a8761a);display:grid;place-items:center;color:#3a2506;font-weight:900;font-size:.72em;box-shadow:0 1px 4px rgba(0,0,0,.6)}
 .card .count{position:absolute;left:50%;bottom:.5em;transform:translateX(-50%);background:rgba(0,0,0,.78);color:var(--gold);font-family:var(--ui);font-weight:800;font-size:.62em;padding:.12em .6em;border-radius:1em;border:1px solid rgba(233,185,73,.5)}
-.card.selected{transform:translateY(-22px)!important;box-shadow:0 0 0 3px var(--gold),0 14px 22px rgba(233,185,73,.55)!important;z-index:60!important;filter:brightness(1.08)}
-.card[role="button"]{touch-action:manipulation;-webkit-user-select:none;user-select:none}
-.card[role="button"]:focus-visible{outline:3px solid #fff0b8;outline-offset:3px;z-index:61!important}
+.card.selected{transform:translateY(-22px)!important;box-shadow:0 0 0 2px var(--gold),0 14px 22px rgba(233,185,73,.45)!important;z-index:60!important}
 .card.drawn{box-shadow:0 0 0 2px #34d399,0 0 14px rgba(52,211,153,.7),0 2px 7px rgba(0,0,0,.5)}
 .card.wild{box-shadow:0 0 0 2px #a855f7,0 2px 7px rgba(0,0,0,.5)}
 .card.fly-in{animation:flyIn .55s cubic-bezier(.2,.9,.25,1.1) both}
@@ -250,9 +248,6 @@ body.fast *{transition-duration:.06s!important}
 .endbar button{padding:10px 16px;border-radius:11px;font-weight:800;font-size:13px;border:1px solid}
 .sum-note{margin:0 0 12px;padding:10px 12px;border-radius:12px;text-align:left;font-size:12.5px;line-height:1.5;background:rgba(233,185,73,.1);border:1px solid rgba(233,185,73,.4);color:#f3e6bd}
 .sum-note b{color:var(--gold-hi)}
-.ai-reading{margin-top:9px;padding-top:8px;border-top:1px solid rgba(233,185,73,.25)}
-.ai-reading strong{display:block;margin-bottom:4px;color:var(--gold-hi)}
-.ai-reading ul{margin:0;padding-left:18px}.ai-reading li{margin:3px 0}
 .sum-col .ln.pos{color:#6ee7b7}
 .sum-hand{display:flex;flex-wrap:wrap;gap:2px;margin-top:6px;--card-w:20px;font-size:0}
 .sum-hand .card{margin-right:-8px}
@@ -360,9 +355,6 @@ body.fast *{transition-duration:.06s!important}
   .chip{font-size:9.5px;padding:2px 6px}
   .hand{padding:24px 10px 6px}
   .hand-inner.wrap{gap:8px 5px}
-  .hand-inner.wrap .card{min-width:48px;min-height:68px}
-  .card.selected{transform:translateY(-16px)!important}
-  .actions .btn.util#btnClear{font-size:10px;letter-spacing:.01em}
   .fd{margin:2px 0;padding:3px 8px;font-size:11px}
 }
 @media(max-height:520px) and (orientation:landscape){
@@ -406,6 +398,14 @@ body.fast *{transition-duration:.06s!important}
 
     <div class="hero-cards" id="heroCards" aria-hidden="true"></div>
 
+    <div id="roomCard" class="menu-card hidden" style="margin-bottom:14px;border-color:#5fb3ff">
+      <label>VOCÊ ESTAVA NA SALA</label>
+      <p id="roomInfo" style="margin:4px 0 12px;font-size:14px;color:#e6efe8"></p>
+      <div class="seg c2" style="margin-bottom:0">
+        <button onclick="rsRoomBack()" class="active">Voltar para a sala</button>
+        <button onclick="rsRoomClear()">Esquecer</button>
+      </div>
+    </div>
     <div id="resumeCard" class="menu-card hidden" style="margin-bottom:14px;border-color:#e9b949">
       <label>PARTIDA EM ANDAMENTO</label>
       <p id="resumeInfo" style="margin:4px 0 12px;font-size:14px;color:#e6efe8"></p>
@@ -454,7 +454,7 @@ body.fast *{transition-duration:.06s!important}
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 11/11 · idiomas PT/EN/ES</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 11/17 · retoma de onde parou</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -536,7 +536,7 @@ body.fast *{transition-duration:.06s!important}
       <div class="status">
         <div class="st">Status da partida</div>
         <div id="friendDown" class="fd hidden"></div>
-        <div id="statusMessage" class="sm" role="status" aria-live="polite" aria-atomic="true">Sua vez! Compre do monte ou do lixo.</div>
+        <div id="statusMessage" class="sm">Sua vez! Compre do monte ou do lixo.</div>
         <div id="turnIndicator" class="tv">Vez: Você</div>
         <div id="lastPlay" class="lp"></div>
       </div>
@@ -558,7 +558,7 @@ body.fast *{transition-duration:.06s!important}
         <button class="btn meld" onclick="playerMeldsSelected()">Baixar sequência</button>
         <button class="btn attach" onclick="playerAttachSelected()">Encaixar</button>
         <button class="btn disc" onclick="playerDiscardSelected()">Descartar</button>
-        <button class="btn util" id="btnClear" onclick="clearSelection()" aria-label="Limpar seleção" title="Limpar as cartas selecionadas">Limpar</button>
+        <button class="btn util" id="btnClear" onclick="clearSelection()">Limpar</button>
         <button class="btn util" onclick="sortPlayerHand()">Organizar mão</button>
         <button class="btn util" onclick="showPileModal()">Ver lixo</button>
       </div>
@@ -707,7 +707,6 @@ body.fast *{transition-duration:.06s!important}
         const GAME_VARIANT = 'BURACO_ABERTO';
         
         const SUITS = ['♠', '♥', '♣', '♦'];
-        const SUIT_NAMES = { '♠': 'espadas', '♥': 'copas', '♣': 'paus', '♦': 'ouros' };
         const SUIT_COLORS = { '♠': 'suit-black', '♣': 'suit-black', '♥': 'suit-red', '♦': 'suit-red' };
         const VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; // 2 até Ás (14)
         
@@ -736,8 +735,7 @@ const BRAND = { name: 'Telas do Passado', logoSrc: '' };
 let flyInIds = new Set();
 let lastDiscardTopId = null;
 let handSortMode = 'value'; // próxima ordenação ao clicar em "Organizar mão"
-        let aiTimer = null;
-        let aiDecisionHistory = [];
+let aiTimer = null;
 
 function scheduleAI() {
     clearTimeout(aiTimer);
@@ -900,7 +898,7 @@ function startNextRound() {
             roundScores = [0, 0];
             lastDrawnCardId = null;
             rodadaEncerrada = false;
-            roundScored = false; lastCounts = {}; aiKnown = {}; aiEmptyDeckPileTakes = 0; aiPileStreak = 0; lastHitter = null; mortoBy = {}; mortoSeat = {}; deadRefills = 0; aiDecisionHistory = []; setLastPlay('');
+            roundScored = false; lastCounts = {}; aiKnown = {}; aiEmptyDeckPileTakes = 0; aiPileStreak = 0; lastHitter = null; mortoBy = {}; mortoSeat = {}; deadRefills = 0; setLastPlay('');
             document.getElementById('endBar').classList.add('hidden');
 
             players = [
@@ -1015,10 +1013,7 @@ function startNextRound() {
                 }
                 inner = idx + center + idxBr;
             }
-            const interactiveAttrs = onClickFn
-                ? `role="button" tabindex="0" aria-pressed="${isSelected ? 'true' : 'false'}" aria-label="Carta ${getCardLabel(card.value)} de ${SUIT_NAMES[card.suit] || card.suit}${isSelected ? ', selecionada' : ''}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${onClickFn}}"`
-                : '';
-            return `<div ${clickAttr} ${interactiveAttrs} class="${cls.join(' ')}" ${styleHTML}>${inner}</div>`;
+            return `<div ${clickAttr} class="${cls.join(' ')}" ${styleHTML}>${inner}</div>`;
         }
 
         
@@ -1134,7 +1129,7 @@ function showDrawnCardNotification(cards) {
                 let per = Math.max(1, Math.floor((avail + gap) / (cw + gap)));
                 if (n > 10 && per < 6 && fit(6) >= 40) per = 6;
                 if (per < 5 && fit(5) >= 44) per = 5;
-                const w = Math.max(handEl.clientWidth < 600 ? 48 : 40, fit(per));
+                const w = Math.max(40, fit(per));
                 handEl.innerHTML = `<div class="hand-inner wrap" style="--card-w:${w}px;width:${per * w + (per - 1) * gap}px">` + hand.map(card =>
                     renderCardHTML(card, `toggleCardSelection(${card.id})`, selectedCards.some(c => c.id === card.id), '', '')
                 ).join('') + '</div>';
@@ -2140,34 +2135,12 @@ function aiTakeTurn(level, ai) {
     aiRefreshKnown();
     const who = aiWho(ai);
     const log = [];
-    let drawReason = '';
-    let discardReason = '';
-    let pickedPileIds = new Set();
-    const saveDecision = () => {
-        const parts = [drawReason, discardReason].filter(Boolean);
-        if (!parts.length) return;
-        aiDecisionHistory.push({ who, text: parts.join(' ') });
-        if (aiDecisionHistory.length > 8) aiDecisionHistory.shift();
-    };
-    const explainDraw = () => {
-        if (choice === 'pile') {
-            const used = [...pickedPileIds].filter(id => !ai.hand.some(c => c.id === id)).length;
-            drawReason = level === 'easy'
-                ? `No Fácil, pegou o lixo por uma regra simples; ${used} carta${used === 1 ? ' foi aproveitada' : 's foram aproveitadas'} nesta vez.`
-                : `Comparou o lixo inteiro com o monte; aproveitou ${used} carta${used === 1 ? '' : 's'} em jogos nesta vez${used ? '' : ' (a decisão veio do potencial calculado para as próximas jogadas)'}.`;
-        } else if (choice === 'deck') {
-            drawReason = level === 'easy'
-                ? 'No Fácil, preferiu o monte pela regra simples do nível.'
-                : 'Preferiu a compra fechada porque o lixo inteiro oferecia menos potencial calculado para a mão.';
-        }
-    };
     let ctx = aiMakeCtx(ai, level);
 
     // 1) compra
     const choice = aiSkipDraw ? 'skip' : aiDecideDraw(ai, level, ctx);
     if (choice === 'pile') {
         const cards = discardPile;
-        pickedPileIds = new Set(cards.map(c => c.id));
         discardPile = [];
         ai.hand.push(...cards);
         aiNotePileTake(ai, cards);
@@ -2202,21 +2175,13 @@ function aiTakeTurn(level, ai) {
             if (st.t === 'new') nMelds++; else nAtt++;
             const before = deadDecksTaken[ai.team];
             checkDeadDeck(ai.team);
-            if (rodadaEncerrada) {
-                explainDraw();
-                if (nMelds) log.push(`baixou ${nMelds} jogo${nMelds > 1 ? 's' : ''}`);
-                if (nAtt) log.push(`encaixou ${nAtt} carta${nAtt > 1 ? 's' : ''}`);
-                discardReason = 'A IA bateu antes de precisar descartar.';
-                saveDecision();
-                return;
-            }
+            if (rodadaEncerrada) return;
             if (!before && deadDecksTaken[ai.team]) { tookMorto = true; log.push('pegou o morto'); break; }
         }
         if (!tookMorto) break;
     }
     if (nMelds) log.push(`baixou ${nMelds} jogo${nMelds > 1 ? 's' : ''}`);
     if (nAtt) log.push(`encaixou ${nAtt} carta${nAtt > 1 ? 's' : ''}`);
-    explainDraw();
 
     // 3) descarte (a vez sempre termina)
     if (!rodadaEncerrada && ai.hand.length > 0) {
@@ -2224,11 +2189,7 @@ function aiTakeTurn(level, ai) {
         const c = ai.hand.splice(idx, 1)[0];
         discardPile.push(c);
         log.push(`descartou ${aiCardName(c)}`);
-        discardReason = level === 'easy'
-            ? `O descarte no Fácil usa uma regra simples com alguma aleatoriedade.`
-            : `Escolheu ${aiCardName(c)} após comparar o potencial das combinações que ficariam na mão e o risco de alimentar os jogos visíveis do adversário.`;
     }
-    saveDecision();
     const txt = `${who} ${log.join(', ')}.`;
     logStatus(txt);
     setLastPlay(txt);
@@ -2289,17 +2250,7 @@ function aiSummaryExtras(winnerTeamIdx, hitter) {
     const lg = t => morteLog[t] ? `${nm(t)}: jogada ${morteLog[t].jogada}` : '';
     const lgs = [0, 1].map(lg).filter(Boolean).join(' · ');
     msg += `<br><small>Morto: ${nm(0)} ${mt(0)} · ${nm(1)} ${mt(1)}${lgs ? '<br>Registro do morto: ' + lgs : ''}${morteHeal.length ? '<br>⚠️ O registro do morto foi corrigido automaticamente (avise o Claude).' : ''}<br>Canastras: ${nm(0)} ${cnt(0)} · ${nm(1)} ${cnt(1)}</small>`;
-    if (note) {
-        note.innerHTML = msg;
-        if (aiDecisionHistory.length) {
-            const section = document.createElement('div'); section.className = 'ai-reading';
-            const heading = document.createElement('strong'); heading.textContent = 'Leitura estratégica da IA nesta queda'; section.appendChild(heading);
-            const list = document.createElement('ul');
-            aiDecisionHistory.slice(-5).forEach(item => { const li = document.createElement('li'); li.textContent = `${item.who}: ${item.text}`; list.appendChild(li); });
-            section.appendChild(list); note.appendChild(section);
-        }
-        note.classList.remove('hidden');
-    }
+    if (note) { note.innerHTML = msg; note.classList.remove('hidden'); }
     const bt = document.getElementById('endBarText');
     if (bt) bt.innerText = byBat ? `${hitter ? seatLabel(hitter) : 'Equipe'} bateu!` : 'Monte vazio — queda encerrada';
     const tst = document.getElementById('toast'); if (tst) tst.classList.add('hidden');
@@ -2421,7 +2372,7 @@ function renderResume() {
     if (!s) return;
     const lvl = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
     const f = n => n.toLocaleString((window.__locale || 'pt-BR'));
-    document.getElementById('resumeInfo').innerText = `Meta ${f(s.target)} · ${s.online ? '👥 online 2×2' : (s.mode === '2x2' ? '2×2' : '1×1')} · IA ${lvl[s.level] || ''} · Placar ${f(s.scores[0])} × ${f(s.scores[1])}`;
+    document.getElementById('resumeInfo').innerText = `${targetLabel(s.target)} · ${s.online ? '👥 online 2×2' : (s.mode === '2x2' ? '2×2' : '1×1')} · IA ${lvl[s.level] || ''} · Placar ${f(s.scores[0])} × ${f(s.scores[1])}${s.round ? ' · queda em andamento' : ''}`;
 }
 function resumeMatch() {
     const s = matchLoadSave(); if (!s) return renderResume();
@@ -3248,9 +3199,9 @@ function assistSelMsg() {
     if (!hasDrawn) { logStatus(n ? 'Primeiro compre do monte ou do lixo.' : 'Sua vez! Compre do monte ou do lixo.'); return; }
     let msg;
     if (n === 0) msg = 'Escolha 1 carta para descartar ou encaixar, ou 3 ou mais para baixar um jogo.';
-            else if (n === 1) {
+    else if (n === 1) {
         const c = selectedCards[0];
-                msg = `${getCardLabel(c.value)}${c.suit} selecionada. Toque nela de novo para desmarcar; use Limpar para escolher outra. Descartar ou toque num jogo seu para encaixar.`;
+        msg = `${getCardLabel(c.value)}${c.suit} selecionada: toque em Descartar, ou num jogo seu na mesa para encaixar.`;
         if (dicasOn && assistRisky(c)) msg += ' ⚠️ Dica: essa carta encaixa num jogo dos adversários; se descartar, eles podem pegar o lixo.';
     } else if (n === 2) msg = '2 cartas: selecione mais 1 (mínimo 3) para Baixar sequência, ou toque num jogo seu para encaixar.';
     else {
@@ -3414,6 +3365,137 @@ calculateFinalScores = function () {
     [0, 1].forEach(t => { if (morteLog[t] && morteLog[t].round === morteRound && !deadDecksTaken[t]) { deadDecksTaken[t] = true; morteHeal.push(t); } });
     return __asCalc.apply(this, arguments);
 };
+// ---------- continuar de onde parou (celular que fecha/suspende a aba) ----------
+// 1) solo/2×2 com a IA: a queda em andamento é guardada a cada jogada e volta exatamente como estava
+// 2) manter a tela acesa durante a partida (Wake Lock)
+// 3) ao voltar de outro app: a IA retoma sozinha e a conexão online é conferida
+// 4) convidado online: guarda a sala para voltar com um toque, mesmo se o navegador recarregar a página
+const ROUND_KEY = 'buraco_queda_andamento_v1';
+const ROOM_KEY = 'buraco_sala_online_v1';
+
+function rsInGame() {
+    const g = document.getElementById('game');
+    return g && !g.classList.contains('hidden');
+}
+function rsSnapshot() {
+    return {
+        v: 1, t: Date.now(),
+        mode: gameMode, level: aiLevel, target: targetScore, scores: gameScores.slice(),
+        deck, pile: discardPile, dead: deadDecks, taken: deadDecksTaken,
+        players: players.map(p => ({ id: p.id, name: p.name, team: p.team, isHuman: p.isHuman, hand: p.hand })),
+        melds: teamMelds, turn: turnIndex, drawn: hasDrawn, lastDrawn: lastDrawnCardId, roundScores: roundScores.slice(),
+        known: aiKnown, mortoBy, mortoSeat, refills: deadRefills, hitter: lastHitter ? lastHitter.id : null,
+        lastPlay: lastPlayText, netRound,
+        morteLog, morteHeal, moveNo, morteRound,
+        sty: [aiStyleSetting, aiStyleSeed], emptyTakes: aiEmptyDeckPileTakes, streak: aiPileStreak
+    };
+}
+function rsSave() {
+    if (netRole || rodadaEncerrada || !rsInGame() || !players.length) return;
+    try { localStorage.setItem(ROUND_KEY, JSON.stringify(rsSnapshot())); } catch (e) { }
+}
+function rsClear() { try { localStorage.removeItem(ROUND_KEY); } catch (e) { } }
+function rsLoad() {
+    try {
+        const s = JSON.parse(localStorage.getItem(ROUND_KEY));
+        if (s && s.v === 1 && Array.isArray(s.players) && s.players.length >= 2 && Array.isArray(s.deck) && Date.now() - s.t < 24 * 3600 * 1000) return s;
+    } catch (e) { }
+    return null;
+}
+let rsTimer = null;
+function rsSchedule() { clearTimeout(rsTimer); rsTimer = setTimeout(rsSave, 250); }
+
+function rsRestore(s) {
+    setGameMode(s.mode); setAILevel(s.level); setTarget(s.target);
+    document.getElementById('landing').classList.add('hidden');
+    document.getElementById('game').classList.remove('hidden');
+    ['scoreSummaryModal', 'rulesModal', 'pileModal', 'confirmDiscardModal', 'leaveModal', 'endBar'].forEach(id => { const e = document.getElementById(id); if (e) e.classList.add('hidden'); });
+    gameScores = s.scores.slice(); matchRecorded = false; pendingScores = null;
+    deck = s.deck; discardPile = s.pile; deadDecks = s.dead; deadDecksTaken = s.taken;
+    players = s.players.map(p => ({ id: p.id, name: p.name, team: p.team, isHuman: p.isHuman, hand: p.hand }));
+    teamMelds = s.melds; turnIndex = s.turn; hasDrawn = s.drawn; lastDrawnCardId = s.lastDrawn; roundScores = s.roundScores || [0, 0];
+    selectedCards = []; rodadaEncerrada = false; roundScored = false; lastCounts = {};
+    aiKnown = s.known || {}; mortoBy = s.mortoBy || {}; mortoSeat = s.mortoSeat || {}; deadRefills = s.refills || 0;
+    lastHitter = (s.hitter != null) ? (players.find(p => p.id === s.hitter) || null) : null;
+    lastPlayText = s.lastPlay || ''; netRound = s.netRound || netRound;
+    morteLog = s.morteLog || {}; morteHeal = s.morteHeal || []; moveNo = s.moveNo || 0; morteRound = s.morteRound || morteRound;
+    if (s.sty) { aiStyleSetting = s.sty[0]; aiStyleSeed = s.sty[1]; }
+    aiEmptyDeckPileTakes = s.emptyTakes || 0; aiPileStreak = s.streak || 0;
+    const two = gameMode === '2x2';
+    document.getElementById('partnerContainer').classList.toggle('hidden', !two);
+    document.getElementById('opp2Container').classList.toggle('hidden', !two);
+    flyInIds = new Set();
+    try { calcularPontosQueda(); } catch (e) { }
+    updateUI();
+    logStatus('Queda retomada de onde você parou.');
+    if (players[turnIndex] && !players[turnIndex].isHuman) scheduleAI();
+}
+
+// o cartão "Partida em andamento" também aparece quando só há uma queda salva
+const __rsLoadSave = matchLoadSave;
+matchLoadSave = function () {
+    const r = rsLoad();
+    if (r) return { mode: r.mode, level: r.level, target: r.target, scores: r.scores, online: false, round: true, t: r.t };
+    return __rsLoadSave.apply(this, arguments);
+};
+const __rsResume = resumeMatch;
+resumeMatch = function () { const r = rsLoad(); if (r) return rsRestore(r); return __rsResume.apply(this, arguments); };
+const __rsClearSave = matchClearSave;
+matchClearSave = function () { rsClear(); return __rsClearSave.apply(this, arguments); };
+
+// grava a cada atualização da tela e, principalmente, no instante em que o app vai para o segundo plano
+const __rsUI = updateUI;
+updateUI = function () { const r = __rsUI.apply(this, arguments); rsSchedule(); rsWake(); return r; };
+const __rsFinal = calculateFinalScores;
+calculateFinalScores = function () { clearTimeout(rsTimer); rsClear(); return __rsFinal.apply(this, arguments); };
+const __rsLeave = leaveConfirm;
+leaveConfirm = function () { clearTimeout(rsTimer); rsClear(); rsRoomClear(); return __rsLeave.apply(this, arguments); };
+const __rsStart = startGame;
+startGame = function () { rsClear(); return __rsStart.apply(this, arguments); };
+
+// ---- tela acesa ----
+let rsLock = null;
+function rsWake() {
+    try {
+        if (!navigator.wakeLock || rsLock || document.hidden || !rsInGame()) return;
+        navigator.wakeLock.request('screen').then(l => { rsLock = l; l.addEventListener('release', () => { rsLock = null; }); }).catch(() => { });
+    } catch (e) { }
+}
+
+// ---- volta do segundo plano ----
+function rsBack() {
+    rsWake();
+    if (netRole || !rsInGame() || rodadaEncerrada) return;
+    const p = players[turnIndex];
+    if (p && !p.isHuman) scheduleAI();      // se o navegador congelou o temporizador da IA, ela retoma
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(rsTimer); rsSave(); } else rsBack(); });
+window.addEventListener('pagehide', () => { clearTimeout(rsTimer); rsSave(); });
+window.addEventListener('pageshow', e => { if (e.persisted) rsBack(); });
+
+// ---- convidado online: lembrar a sala ----
+function rsRoomSave() { try { if (netRole === 'guest' && netCode) localStorage.setItem(ROOM_KEY, JSON.stringify({ code: netCode, key: netKey, t: Date.now() })); } catch (e) { } }
+function rsRoomClear() { try { localStorage.removeItem(ROOM_KEY); } catch (e) { } rsRoomRender(); }
+function rsRoomLoad() { try { const r = JSON.parse(localStorage.getItem(ROOM_KEY)); if (r && r.code && Date.now() - r.t < 4 * 3600 * 1000) return r; } catch (e) { } return null; }
+function rsRoomRender() {
+    const c = document.getElementById('roomCard'); if (!c) return;
+    const r = (!netRole && !/[?&]sala=/.test(location.search)) ? rsRoomLoad() : null;
+    c.classList.toggle('hidden', !r);
+    if (r) document.getElementById('roomInfo').innerText = 'Sala ' + r.code;
+}
+function rsRoomBack() { const r = rsRoomLoad(); if (r) netGuestJoin(r.code, r.key); }
+const __rsApply = netApply;
+netApply = function () { const first = !netGuestStarted; const r = __rsApply.apply(this, arguments); if (first || Math.random() < 0.02) rsRoomSave(); return r; };
+
+// ---- ao abrir a página ----
+function rsBoot() {
+    rsRoomRender();
+    if (netRole || /[?&]sala=/.test(location.search)) return;
+    const r = rsLoad();
+    if (r && Date.now() - r.t < 2 * 3600 * 1000 && !rsInGame()) rsRestore(r);   // acabou de sair: volta direto para a mesa
+    else renderResume();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(rsBoot, 50)); else setTimeout(rsBoot, 50);
 // ---------- idiomas: PT (original) / EN / ES ----------
 // O jogo continua escrito em português; esta camada troca os textos na tela (frases em ordem de tamanho)
 // e guarda o original de cada texto, então dá para trocar de idioma a qualquer momento.
@@ -3456,7 +3538,13 @@ const I18N_ROWS = [
 ['3.000', '3,000', '3.000'], ['5.000', '5,000', '5.000'], ['1.000', '1,000', '1.000'],
 ['Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.', 'Saved on this device and browser, and never erased by the game.', 'Se guarda en este aparato y navegador y el juego nunca lo borra.'],
 ['Buraco aberto · 2 baralhos · só o 2 é curinga ·', 'Open Buraco · 2 decks · only the 2 is wild ·', 'Buraco abierto · 2 mazos · solo el 2 es comodín ·'],
-['Versão 11/11 · idiomas PT/EN/ES', 'Version 11/11 · languages PT/EN/ES', 'Versión 11/11 · idiomas PT/EN/ES'],
+['Versão 11/17 · retoma de onde parou', 'Version 11/17 · resumes where you left off', 'Versión 11/17 · retoma donde lo dejaste'],
+['Queda retomada de onde você parou.', 'Round resumed where you left off.', 'Ronda retomada donde la dejaste.'],
+[' · queda em andamento', ' · round in progress', ' · ronda en curso'],
+['VOCÊ ESTAVA NA SALA', 'YOU WERE IN ROOM', 'ESTABAS EN LA SALA'],
+['Voltar para a sala', 'Back to the room', 'Volver a la sala'],
+['Esquecer', 'Forget', 'Olvidar'],
+['Sala ', 'Room ', 'Sala '],
 ['Versão ', 'Version ', 'Versión '],
 ['Idioma', 'Language', 'Idioma'],
 ['Atraso da conexão com o amigo', 'Connection delay to your friend', 'Retraso de la conexión con el amigo'],
