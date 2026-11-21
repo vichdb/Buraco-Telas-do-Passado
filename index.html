@@ -422,10 +422,11 @@ body.fast *{transition-duration:.06s!important}
         <button id="btnMode2v2" onclick="setGameMode('2x2')">2 × 2<small>Com parceiro (IA)</small></button>
       </div>
       <label>NÍVEL DA IA</label>
-      <div class="seg c3">
+      <div class="seg c4">
         <button id="btnAiEasy" onclick="setAILevel('easy')">Fácil</button>
         <button id="btnAiMedium" onclick="setAILevel('medium')" class="active">Médio</button>
         <button id="btnAiHard" onclick="setAILevel('hard')">Difícil</button>
+        <button id="btnAiMaster" onclick="setAILevel('master')">🏆 Mestre</button>
       </div>
       <label>ESTILO DOS ADVERSÁRIOS</label>
       <div class="seg c4">
@@ -583,10 +584,11 @@ body.fast *{transition-duration:.06s!important}
         <button data-nt="10000" onclick="netPick('t',10000)">10.000</button>
       </div>
       <label style="display:block;font-size:11px;letter-spacing:.08em;color:var(--muted);margin:0 0 6px">NÍVEL DA IA</label>
-      <div class="seg c3" style="margin-bottom:12px">
+      <div class="seg c4" style="margin-bottom:12px">
         <button data-nl="easy" onclick="netPick('l','easy')">Fácil</button>
         <button data-nl="medium" onclick="netPick('l','medium')">Médio</button>
         <button data-nl="hard" onclick="netPick('l','hard')">Difícil</button>
+        <button data-nl="master" onclick="netPick('l','master')">🏆 Mestre</button>
       </div>
       <label style="display:block;font-size:11px;letter-spacing:.08em;color:var(--muted);margin:0 0 6px">ESTILO DOS ADVERSÁRIOS</label>
       <div class="seg c4" style="margin-bottom:12px">
@@ -791,11 +793,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
         function setAILevel(level) {
             aiLevel = level;
-            ['easy', 'medium', 'hard'].forEach(lvl => {
+            ['easy', 'medium', 'hard', 'master'].forEach(lvl => {
                 const btn = document.getElementById('btnAi' + lvl.charAt(0).toUpperCase() + lvl.slice(1));
                 if (btn) btn.classList.toggle('active', lvl === level);
             });
-            const textMap = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
+            const textMap = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil', master: 'Mestre' };
             document.getElementById('aiLevelBadge').innerText = 'IA: ' + textMap[level];
         }
 
@@ -1655,6 +1657,12 @@ const AI_LEVELS = {
         label: 'Difícil', skip: 0, maxNew: 6, maxSteps: 14, wildNew: true, wildAttach: 1, minGain: 4, noise: 0,
         potW: 36, useOuts: true, wildHold: 30, canastaDrive: 2.4, mortoW: 60, batW: 150, endAware: true,
         margin: 3, leftoverPen: 1.5, sample: 14
+    },
+    master: { // Mestre: como o Difícil, mas pega o lixo mais cedo, estima melhor o monte (30 amostras),
+              // nega lixo grande ao adversário, defende mais no descarte e baixa jogos sem esperar
+        label: 'Mestre', skip: 0, maxNew: 6, maxSteps: 14, wildNew: true, wildAttach: 1, minGain: 0, noise: 0,
+        potW: 36, useOuts: true, wildHold: 30, canastaDrive: 2.4, mortoW: 60, batW: 150, endAware: true,
+        margin: -4, leftoverPen: 0.8, sample: 30, denyPer: 7, denyCap: 35, dangerMul: 1.6
     }
 };
 const AI_CANASTA_BONUS = { REAL: 1000, FIVE_TO_KING: 500, CLEAN: 200, DIRTY: 100 };
@@ -2016,7 +2024,7 @@ function aiDecideDraw(ai, level, ctx) {
         if (pile.length >= 4) {
             let useful = 0;
             for (const c of pile) if (oppMelds.some(m => analyzeMeld(m.cards.concat(c)).valid)) useful++;
-            vPile += Math.min(20, useful * 4);
+            vPile += Math.min(L.denyCap ?? 20, useful * (L.denyPer ?? 4));
         }
         if (deck.length <= 3) {
             const lead = aiRoundLead(ai);
@@ -2055,7 +2063,7 @@ function aiDanger(c, ai, ctx) {
         const pileNear = discardPile.filter(k => k.suit === c.suit && k.value !== c.value && Math.abs(k.value - c.value) <= 2).length;
         if (pileNear >= 2) d += 18; else if (pileNear === 1) d += 6;
     }
-    return d * nf * aiSty(ai).danger;
+    return d * nf * aiSty(ai).danger * (L.dangerMul ?? 1);
 }
 
 // devolve o índice da carta a descartar em ai.hand
@@ -2370,7 +2378,7 @@ function renderResume() {
     const s = matchLoadSave();
     card.classList.toggle('hidden', !s);
     if (!s) return;
-    const lvl = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
+    const lvl = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil', master: 'Mestre' };
     const f = n => n.toLocaleString((window.__locale || 'pt-BR'));
     document.getElementById('resumeInfo').innerText = `${targetLabel(s.target)} · ${s.online ? '👥 online 2×2' : (s.mode === '2x2' ? '2×2' : '1×1')} · IA ${lvl[s.level] || ''} · Placar ${f(s.scores[0])} × ${f(s.scores[1])}${s.round ? ' · queda em andamento' : ''}`;
 }
@@ -2405,7 +2413,7 @@ function renderHistory() {
     const h = histLoad();
     const total = h.v + h.d;
     const pct = total ? Math.round(h.v * 100 / total) : 0;
-    const lvl = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
+    const lvl = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil', master: 'Mestre' };
     const rows = h.jogos.slice(0, 6).map(j => {
         const dt = new Date(j.t);
         const ds = dt.toLocaleDateString((window.__locale || 'pt-BR'), { day: '2-digit', month: '2-digit' });
@@ -2795,7 +2803,9 @@ function netHostOnData(m) {
     netLastRx = Date.now();
     if (m && (m.t === 'ping' || m.t === 'pong')) return netPingIn(m);
     if (m && m.t === 'sync') { netLastSent = ''; netBroadcast(); return; }
-    if (!m || m.t !== 'cmd') return;
+    if (!m || typeof m !== 'object' || m.t !== 'cmd') return;
+    if (typeof m.c !== 'string' || (m.ids != null && (!Array.isArray(m.ids) || m.ids.length > 20 || !m.ids.every(x => Number.isInteger(x))))) return;
+    if (m.c === 'attachTo' && !(Number.isInteger(m.meldIdx) && m.meldIdx >= 0 && m.meldIdx < 60)) return;
     netRunCmd(m);
 }
 
@@ -2979,7 +2989,9 @@ function netGuestOnData(m) {
         netStateCount++;
         const raw = m.raw || JSON.stringify(m.s);
         if (raw === netLastGot) return;
-        netApply(m.raw ? JSON.parse(m.raw) : m.s);
+        let st = null;
+        try { st = m.raw ? JSON.parse(m.raw) : m.s; } catch (e) { return; }
+        netApply(st);
         netLastGot = raw;
     }
 }
@@ -2995,7 +3007,8 @@ function netApply(S) {
         document.getElementById('partnerContainer').classList.remove('hidden');
         document.getElementById('opp2Container').classList.remove('hidden');
     }
-    aiLevel = S.level; targetScore = S.target;
+    if (!S || !Array.isArray(S.players) || S.players.length !== 4 || !Array.isArray(S.melds) || !Array.isArray(S.pile)) return;
+    aiLevel = AI_LEVELS[S.level] ? S.level : 'medium'; targetScore = TARGETS.includes(S.target) ? S.target : 3000;
     const lb = document.getElementById('aiLevelBadge'); if (lb) lb.innerText = 'IA: ' + (AI_LEVELS[aiLevel] ? AI_LEVELS[aiLevel].label : '');
     const tb = document.getElementById('targetBadge'); if (tb) tb.innerText = targetLabel(targetScore);
 
@@ -3537,7 +3550,7 @@ const I18N_ROWS = [
 ['Com parceiro (IA)', 'With a partner (AI)', 'Con compañero (IA)'],
 ['NÍVEL DA IA', 'AI LEVEL', 'NIVEL DE LA IA'],
 ['ESTILO DOS ADVERSÁRIOS', "OPPONENTS' STYLE", 'ESTILO DE LOS RIVALES'],
-['Fácil', 'Easy', 'Fácil'], ['Médio', 'Medium', 'Medio'], ['Difícil', 'Hard', 'Difícil'],
+['Fácil', 'Easy', 'Fácil'], ['Médio', 'Medium', 'Medio'], ['Difícil', 'Hard', 'Difícil'], ['🏆 Mestre', '🏆 Master', '🏆 Maestro'], ['Mestre', 'Master', 'Maestro'],
 ['IA: ', 'AI: ', 'IA: '],
 ['Equilibrado', 'Balanced', 'Equilibrado'], ['Equilib.', 'Balanced', 'Equilib.'],
 ['Cauteloso', 'Cautious', 'Cauteloso'], ['Agressivo', 'Aggressive', 'Agresivo'],
