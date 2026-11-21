@@ -280,6 +280,7 @@ body.fast *{transition-duration:.06s!important}
 .stack{position:relative}
 .stack::before,.stack::after{content:'';position:absolute;inset:0;border-radius:calc(var(--card-w)*.11);background:#0f1c45;border:2px solid #f3ead2;z-index:-1}
 .stack::before{transform:translate(3px,3px)}.stack::after{transform:translate(6px,6px)}
+.snd-wait{animation:sndPulse 1.2s ease-in-out infinite}@keyframes sndPulse{50%{box-shadow:0 0 0 3px rgba(233,185,73,.6)}}
 .status{min-width:170px;max-width:240px;padding:9px 12px;border-radius:14px;background:rgba(5,12,8,.82);border:1px solid rgba(255,255,255,.14)}
 .status .st{font-size:9.5px;font-weight:800;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
 .status .sm{font-size:12.5px;line-height:1.35;margin:3px 0 5px;color:#e8f1ea;font-weight:500}
@@ -334,7 +335,16 @@ body.fast *{transition-duration:.06s!important}
 @media(max-width:520px){
   .score .sub{display:none}
   .mid-row{--card-w:50px;--card-w-c:50px;gap:12px}
-  .status{min-width:0;flex:1 1 100%;max-width:none}
+  /* status compacto no celular: uma linha fina (toque para abrir/fechar), para sobrar espaço aos jogos do time e à mão */
+  .status{min-width:0;flex:1 1 100%;max-width:none;padding:4px 10px;border-radius:999px;cursor:pointer;display:flex;flex-direction:column;gap:1px}
+  .status .st,.status .tv{display:none}
+  .status .sm{margin:0;font-size:11.5px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .status .lp{margin:0;padding:0;border:0;font-size:10px;line-height:1.2;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .status.open{border-radius:14px;padding:7px 12px}
+  .status.open .st,.status.open .tv{display:block}
+  .status.open .sm,.status.open .lp{white-space:normal;overflow:visible}
+  .status.open .lp{margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,.12)}
+  .mid-row{row-gap:5px}
   .topbar{padding:6px 8px}.scores{gap:10px;width:100%;margin-left:0;justify-content:space-between}
   .table{padding:8px;border-width:8px;border-radius:18px}
   .melds.opp{--mw:36px}
@@ -347,13 +357,16 @@ body.fast *{transition-duration:.06s!important}
 @media(max-width:340px){.table{padding:4px;border-width:5px}#game{padding-left:3px;padding-right:3px}.scores{gap:6px}.tb-btn,#fastBtn,#hintBtn,#soundBtn{padding:6px 6px}.score .num{font-size:17px}.topbar{padding:5px 6px}}
 @media(max-width:400px){.t-long{display:none}.t-short{display:inline;font-size:14px;line-height:1}#gameModeBadge{display:none}}
 @media(max-width:520px){
-  .steps{margin:0 0 4px;font-size:10px;gap:4px}.steps span{padding:2px 7px}
+  .steps{display:none}
   .actions{gap:6px!important;margin-bottom:4px!important}
   .actions{display:grid!important;grid-template-columns:repeat(3,1fr)}
   .actions .btn{padding:6px 3px;font-size:10.5px;line-height:1.15;min-width:0}
   .topbar .brand{font-size:0;gap:0}
   .chip{font-size:9.5px;padding:2px 6px}
-  .hand{padding:24px 10px 6px}
+  .hand{padding:16px 10px 6px}
+  .counts{gap:4px;margin-bottom:4px}.counts .cn{font-size:10px;padding:2px 6px;border-radius:7px}.counts .cn b{font-size:11.5px;margin-left:2px}
+  .you-strip{gap:4px;margin-bottom:4px}
+  .hand-inner.wrap{padding-top:2px}
   .hand-inner.wrap{gap:8px 5px}
   .fd{margin:2px 0;padding:3px 8px;font-size:11px}
 }
@@ -534,7 +547,7 @@ body.fast *{transition-duration:.06s!important}
         <div id="discardPileCard"></div>
         <span id="discardCount" class="lbl">LIXO (0)</span>
       </div>
-      <div class="status">
+      <div class="status" onclick="this.classList.toggle('open')">
         <div class="st">Status da partida</div>
         <div id="friendDown" class="fd hidden"></div>
         <div id="statusMessage" class="sm">Sua vez! Compre do monte ou do lixo.</div>
@@ -739,6 +752,14 @@ let lastDiscardTopId = null;
 let handSortMode = 'value'; // próxima ordenação ao clicar em "Organizar mão"
 let aiTimer = null;
 
+// no celular, ao começar a sua vez rola a mesa até o monte/lixo e os jogos do time (o painel dos adversários fica acima)
+function focusTable() {
+    try {
+        if (!window.matchMedia || !window.matchMedia('(max-width:520px)').matches) return;
+        const pa = document.querySelector('.play-area');
+        if (pa) setTimeout(() => { pa.scrollTo({ top: pa.scrollHeight, behavior: 'smooth' }); }, 60);
+    } catch (e) { }
+}
 function scheduleAI() {
     clearTimeout(aiTimer);
     aiTimer = setTimeout(playAITurn, 1200);
@@ -1627,6 +1648,7 @@ function playerDrawFromDeck() {
             updateUI();
 
             if (players[turnIndex].isHuman) {
+                focusTable();
                 logStatus(players[turnIndex].id === 0 ? 'Sua vez! Compre do monte ou pegue o lixo.' : 'Vez do seu amigo...');
             } else {
                 logStatus(`Vez de ${players[turnIndex].name}...`);
@@ -1907,10 +1929,26 @@ function aiPlan(ai, hand0, ctx) {
             }
         }
 
+        // 3) juntar dois jogos do time que se encontram (ex.: 3♣4♣5♣ + 6♣7♣8♣, ou depois que uma carta preenche o buraco)
+        for (let mi = 0; mi < melds.length; mi++) {
+            for (let mj = mi + 1; mj < melds.length; mj++) {
+                if (melds[mi].length + melds[mj].length > 14) continue;
+                const combined = melds[mi].concat(melds[mj]);
+                if (!analyzeMeld(combined).valid) continue;
+                const newMelds = melds.filter((_, k) => k !== mj);
+                newMelds[mi] = combined;
+                consider(aiEval(hand, newMelds, ctx) - cur, { t: 'mrg', mi, mj });
+            }
+        }
+
         if (!best || best.gain <= L.minGain) break;
 
         const mv = best.mv;
-        if (mv.t === 'att') {
+        if (mv.t === 'mrg') {
+            melds[mv.mi] = melds[mv.mi].concat(melds[mv.mj]);
+            melds = melds.filter((_, k) => k !== mv.mj);
+            steps.push({ t: 'mrg', mi: mv.mi, mj: mv.mj });
+        } else if (mv.t === 'att') {
             melds[mv.mi] = melds[mv.mi].concat(mv.card);
             hand = hand.filter(h => h !== mv.card);
             steps.push({ t: 'att', mi: mv.mi, card: mv.card });
@@ -2107,6 +2145,16 @@ function aiChooseDiscard(ai, level) {
 
 // ---------- execução ----------
 function aiExecStep(ai, st) {
+    if (st.t === 'mrg') {
+        const ml = teamMelds[ai.team], A = ml[st.mi], B = ml[st.mj];
+        if (!A || !B || st.mj <= st.mi) return false;
+        const combined = A.cards.concat(B.cards);
+        if (!analyzeMeld(combined).valid) return false;
+        A.cards = combined.sort((a, b) => a.value - b.value);
+        ml.splice(st.mj, 1);
+        optimizeMeldWildcards(A, ai);
+        return true;
+    }
     if (st.t === 'att') {
         const meld = teamMelds[ai.team][st.mi];
         const idx = ai.hand.findIndex(c => c.id === st.card.id);
@@ -2172,7 +2220,7 @@ function aiTakeTurn(level, ai) {
     }
 
     // 2) baixar / encaixar (replaneja se o morto entrar na mão no meio da vez)
-    let nMelds = 0, nAtt = 0;
+    let nMelds = 0, nAtt = 0, nMrg = 0;
     for (let round = 0; round < 6 && !rodadaEncerrada; round++) {
         ctx = aiMakeCtx(ai, level);
         const plan = aiPlan(ai, ai.hand, ctx);
@@ -2180,7 +2228,7 @@ function aiTakeTurn(level, ai) {
         let tookMorto = false;
         for (const st of plan.steps) {
             if (!aiExecStep(ai, st)) continue;
-            if (st.t === 'new') nMelds++; else nAtt++;
+            if (st.t === 'new') nMelds++; else if (st.t === 'mrg') nMrg++; else nAtt++;
             const before = deadDecksTaken[ai.team];
             checkDeadDeck(ai.team);
             if (rodadaEncerrada) return;
@@ -2190,6 +2238,7 @@ function aiTakeTurn(level, ai) {
     }
     if (nMelds) log.push(`baixou ${nMelds} jogo${nMelds > 1 ? 's' : ''}`);
     if (nAtt) log.push(`encaixou ${nAtt} carta${nAtt > 1 ? 's' : ''}`);
+    if (nMrg) log.push(`juntou ${nMrg} jogo${nMrg > 1 ? 's' : ''}`);
 
     // 3) descarte (a vez sempre termina)
     if (!rodadaEncerrada && ai.hand.length > 0) {
@@ -3093,7 +3142,7 @@ try { sndOn = localStorage.getItem('buracoSom') !== '0'; } catch (e) { }
 // Celular/tablet: o navegador só libera o áudio em toques "completos" (touchend/click/pointerup),
 // não em touchstart/pointerdown. Por isso escutamos todos e, no 1º toque válido, tocamos um som mudo
 // para destravar. No iPhone/iPad também pedimos o canal de "mídia", para tocar mesmo com a chave do silencioso.
-let sndUnlocked = false, sndHtmlAudio = null;
+let sndLastWaitAt = 0, sndUnlocked = false, sndHtmlAudio = null, sndNeedRebuild = false, sndCheckT = null, sndHiddenAt = 0;
 function sndMediaSession() {
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { }
     try {
@@ -3105,28 +3154,70 @@ function sndMediaSession() {
         const pr = sndHtmlAudio.play(); if (pr && pr.catch) pr.catch(() => { });
     } catch (e) { }
 }
-function sndInit() {
+function sndRunning() { return !!sndCtx && sndCtx.state === 'running'; }
+// Cria um contexto NOVO (usado na 1ª vez e sempre que o do Safari trava: "interrupted", "suspended" que não volta, "closed").
+// Precisa rodar dentro de um toque do usuário.
+function sndBuild() {
+    try { if (sndCtx) { sndCtx.onstatechange = null; if (sndCtx.state !== 'closed') sndCtx.close().catch(() => { }); } } catch (e) { }
+    sndCtx = null; sndMaster = null; sndUnlocked = false; sndNeedRebuild = false;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
     try {
-        if (!sndCtx) {
-            const AC = window.AudioContext || window.webkitAudioContext;
-            if (!AC) return;
+        sndMediaSession();
+        sndCtx = new AC();
+        sndMaster = sndCtx.createGain(); sndMaster.gain.value = 0.55; sndMaster.connect(sndCtx.destination);
+        sndCtx.onstatechange = () => { if (sndCtx && sndCtx.state === 'running') sndUnlocked = true; sndRefreshBtn(); };
+        return true;
+    } catch (e) { sndCtx = null; sndMaster = null; return false; }
+}
+// toca um buffer mudo dentro do gesto (é o que de fato "destrava" a saída de áudio no iPhone)
+function sndSilentKick() {
+    try {
+        const b = sndCtx.createBuffer(1, 1, 22050), src = sndCtx.createBufferSource();
+        src.buffer = b; src.connect(sndCtx.destination); src.start(0);
+    } catch (e) { }
+}
+function sndTryResume(cb) {
+    if (!sndCtx) return;
+    try {
+        const pr = sndCtx.resume();
+        if (pr && pr.then) pr.then(() => { if (cb && sndRunning()) cb(); }).catch(() => { });
+    } catch (e) { }
+}
+function sndInit(ev) {
+    try {
+        // só toques "completos" contam como permissão do navegador; touchstart/pointerdown só tentam retomar
+        const strong = !ev || ev === true || ev.type === 'touchend' || ev.type === 'pointerup' || ev.type === 'click' || ev.type === 'mouseup' || ev.type === 'keydown';
+        if (!sndCtx || sndCtx.state === 'closed' || (sndNeedRebuild && strong)) { if (!sndBuild()) return; }
+        if (sndCtx.state !== 'running') {
             sndMediaSession();
-            sndCtx = new AC();
-            sndMaster = sndCtx.createGain(); sndMaster.gain.value = 0.55; sndMaster.connect(sndCtx.destination);
-        }
-        if (sndCtx.state !== 'running') { const pr = sndCtx.resume(); if (pr && pr.catch) pr.catch(() => { }); }
-        if (!sndUnlocked) {
-            // buffer mudo tocado dentro do gesto: destrava Safari/iOS e Chrome do Android
-            const b = sndCtx.createBuffer(1, 1, 22050), src = sndCtx.createBufferSource();
-            src.buffer = b; src.connect(sndCtx.destination); src.start(0);
-            if (sndCtx.state === 'running') sndUnlocked = true;
-            else if (sndCtx.resume) sndCtx.resume().then(() => { sndUnlocked = sndCtx.state === 'running'; }).catch(() => { });
-        }
+            sndTryResume();
+            sndSilentKick();
+            if (strong) {
+                // se o Safari não destravar em ~0,4 s (estado "interrupted"/"suspended" preso), reconstrói no próximo toque
+                clearTimeout(sndCheckT);
+                sndCheckT = setTimeout(() => { if (!sndRunning()) { sndNeedRebuild = true; } sndRefreshBtn(); }, 400);
+            }
+        } else if (!sndUnlocked) { sndSilentKick(); sndUnlocked = true; }
     } catch (e) { }
 }
 ['pointerdown', 'pointerup', 'mousedown', 'keydown', 'touchstart', 'touchend', 'click'].forEach(ev => window.addEventListener(ev, sndInit, { passive: true, capture: true }));
-// ao voltar para o jogo (troca de app, tela bloqueada) o áudio fica "suspenso/interrompido": religa no próximo toque
-document.addEventListener('visibilitychange', () => { if (!document.hidden && sndCtx && sndCtx.state !== 'running') { sndUnlocked = false; try { sndCtx.resume().catch(() => { }); } catch (e) { } } });
+// Voltou de outro app / tela bloqueada / ligação: o iPhone costuma deixar o áudio "preso" (às vezes até dizendo "running").
+// Se ficou fora por mais de ~1 s, descartamos o contexto e criamos outro no próximo toque.
+function sndOnHide() { sndHiddenAt = Date.now(); }
+function sndOnShow() {
+    if (sndHiddenAt && Date.now() - sndHiddenAt > 1000) sndNeedRebuild = true;
+    sndHiddenAt = 0; sndUnlocked = false;
+    if (sndCtx && sndCtx.state !== 'running') sndTryResume();
+    sndRefreshBtn();
+}
+document.addEventListener('visibilitychange', () => { document.hidden ? sndOnHide() : sndOnShow(); });
+window.addEventListener('pagehide', sndOnHide);
+window.addEventListener('pageshow', sndOnShow);
+window.addEventListener('focus', () => { if (sndCtx && sndCtx.state !== 'running') sndTryResume(); sndRefreshBtn(); });
+try { if (navigator.audioSession && navigator.audioSession.addEventListener) navigator.audioSession.addEventListener('statechange', () => { sndNeedRebuild = true; sndRefreshBtn(); }); } catch (e) { }
+// mantém o ícone do som honesto: só mostra "ligado" quando o áudio está mesmo rodando
+setInterval(() => { sndRefreshBtn(); }, 1500);
 
 function sndNoise(dur, filt, freq, q, vol, when, sweepTo) {
     if (!sndCtx) return;
@@ -3149,7 +3240,8 @@ function sndTone(freq, dur, vol, when, type) {
     o.connect(g); g.connect(sndMaster); o.start(t); o.stop(t + dur + 0.02);
 }
 function sndPlay(kind, n) {
-    if (!sndOn || !sndCtx || sndCtx.state !== 'running') return;
+    if (!sndOn) return;
+    if (!sndCtx || sndCtx.state !== 'running') { if (sndCtx) sndTryResume(); return; } // sem fila: som atrasado é pior que sem som
     const r = () => 0.9 + Math.random() * 0.25;
     switch (kind) {
         case 'draw': sndNoise(0.07, 'bandpass', 2600 * r(), 1.1, 0.9); sndNoise(0.05, 'highpass', 5000, 0.7, 0.25, 0.015); break;
@@ -3165,14 +3257,28 @@ function sndPlay(kind, n) {
     }
 }
 function toggleSound() {
+    // som "ligado" mas o navegador ainda não liberou o áudio: o toque no botão serve para ATIVAR (não para desligar)
+    // (o próprio toque no botão já pode ter criado/destravado o áudio um instante antes: nesse caso também só ativa)
+    if (sndOn && (!sndRunning() || Date.now() - sndLastWaitAt < 900)) {
+        if (!sndRunning()) { sndNeedRebuild = true; sndInit(true); }
+        sndTryResume(() => sndPlay('draw'));
+        setTimeout(() => { sndRefreshBtn(); if (sndRunning()) sndPlay('draw'); }, 350);
+        sndRefreshBtn();
+        return;
+    }
     sndOn = !sndOn;
     try { localStorage.setItem('buracoSom', sndOn ? '1' : '0'); } catch (e) { }
-    sndInit(); sndRefreshBtn();
-    if (sndOn) sndPlay('draw');
+    sndInit(true); sndRefreshBtn();
+    if (sndOn) { sndTryResume(() => sndPlay('draw')); sndPlay('draw'); }
 }
 function sndRefreshBtn() {
     const b = document.getElementById('soundBtn');
-    if (b) { b.innerText = sndOn ? '🔊' : '🔇'; b.title = sndOn ? 'Som ligado (toque para silenciar)' : 'Som desligado'; }
+    if (!b) return;
+    const wait = sndOn && !sndRunning();
+    if (wait) sndLastWaitAt = Date.now();
+    b.innerText = !sndOn ? '🔇' : (wait ? '🔈' : '🔊');
+    b.classList.toggle('snd-wait', wait);
+    b.title = !sndOn ? 'Som desligado' : (wait ? 'Toque aqui para ativar o som' : 'Som ligado (toque para silenciar)');
 }
 
 // detecta o que mudou na mesa a cada redesenho e toca o som certo (vale para solo, anfitrião e convidado)
