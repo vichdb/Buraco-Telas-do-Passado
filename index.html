@@ -430,6 +430,87 @@ body.cartaG .card .idx i{font-size:.9em}
 #confettiCv{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:120}
 .modal{overscroll-behavior:contain}
 button,.card,.seg button{touch-action:manipulation}
+
+/* ===================== EXTRAS 2: missões, conquistas, tutorial, música, acessibilidade ===================== */
+.perfil-card{margin-top:18px;text-align:left;padding:16px 18px;border-radius:20px;background:linear-gradient(180deg,rgba(18,32,24,.9),rgba(8,16,12,.9));border:1px solid rgba(233,185,73,.35)}
+.pf-top{display:flex;align-items:center;gap:12px}
+.pf-lv{flex:0 0 auto;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#2a1a02;background:linear-gradient(180deg,#f6cf63,#c8921f);border:2px solid #ffe39a}
+.pf-info{flex:1;min-width:0}
+.pf-info b{display:block;font-size:15px;color:var(--gold-hi)}
+.pf-info small{color:var(--muted);font-size:11px}
+.xpbar{height:7px;border-radius:6px;background:#10201a;border:1px solid #2c4a39;overflow:hidden;margin-top:5px}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,#c8921f,#ffe39a)}
+.pf-miss{margin-top:12px;display:grid;gap:6px}
+.ms-row{display:flex;align-items:center;gap:8px;font-size:13px;padding:7px 10px;border-radius:10px;background:#0c1a13;border:1px solid #213a2b}
+.ms-row.ok{border-color:#2f8f5a;background:#0e2a1b}
+.ms-row .ms-t{flex:1}
+.ms-row .ms-p{font-weight:800;font-size:12px;color:var(--gold)}
+.ms-row.ok .ms-p{color:#6ee7a0}
+.pf-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:var(--muted);gap:8px;flex-wrap:wrap}
+.ach-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:6px}
+.ach{display:flex;gap:9px;align-items:center;padding:9px 10px;border-radius:12px;background:#0c1a13;border:1px solid #213a2b;font-size:12px;line-height:1.3}
+.ach .ai{font-size:24px;flex:0 0 auto}
+.ach b{display:block;color:var(--cream);font-size:13px}
+.ach span{color:var(--muted)}
+.ach.lock{opacity:.5;filter:grayscale(1)}
+.ach.got{border-color:#a8761a;background:#1c1a0d}
+.ach-toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:120;max-width:92vw;padding:10px 16px;border-radius:14px;background:linear-gradient(180deg,#2b2410,#15110a);border:1px solid var(--gold);color:var(--gold-hi);font-weight:700;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.6);animation:achIn .4s cubic-bezier(.2,.9,.25,1.2)}
+.ach-toast small{display:block;color:var(--cream);font-weight:500;font-size:12px}
+@keyframes achIn{from{opacity:0;transform:translate(-50%,-30px) scale(.9)}}
+.tut-card{margin:8px 0 12px;font-size:14px;line-height:1.5;color:var(--cream)}
+.tut-step{font-size:11px;letter-spacing:.08em;color:var(--muted);text-align:center}
+.tut-hand{--card-w:46px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0;padding:10px 4px;border-radius:14px;background:rgba(0,0,0,.25)}
+.tut-hand .card{cursor:pointer}
+.tut-melds{--card-w:30px;display:grid;gap:6px;margin:8px 0;justify-items:center}
+.tut-melds .row{display:flex;padding-left:calc(var(--card-w)*.45);cursor:default}
+.tut-melds .row.pick{cursor:pointer;border-radius:10px;padding-top:3px;padding-bottom:3px;padding-right:6px;border:1px dashed transparent}
+.tut-melds .row.pick.sel{border-color:var(--gold);background:rgba(233,185,73,.12)}
+.tut-melds .card{margin-left:calc(var(--card-w)*-.45)}
+.tut-opts{display:grid;gap:8px;margin:10px 0}
+.tut-opt{padding:11px 12px;border-radius:12px;background:#10201a;border:1px solid #2c4a39;color:var(--cream);font-weight:600;font-size:14px;text-align:left}
+.tut-opt.sel{border-color:var(--gold);background:#1a2a16}
+.tut-fb{min-height:38px;font-size:13px;line-height:1.4;padding:8px 10px;border-radius:10px;margin-top:6px}
+.tut-fb.ok{background:#0e2a1b;border:1px solid #2f8f5a;color:#b6f5cf}
+.tut-fb.err{background:#2a1015;border:1px solid #8f2f3f;color:#ffc5cf}
+.tut-bar{display:flex;gap:4px;justify-content:center;margin:2px 0 8px}
+.tut-bar i{width:26px;height:5px;border-radius:4px;background:#2c4a39}
+.tut-bar i.on{background:var(--gold)}
+.tut-bar i.done{background:#34d399}
+#btnMestre{display:none}
+body.treino-on #btnMestre{display:inline-flex}
+.hintglow{animation:hintGlow .9s ease-in-out 3!important;border-radius:12px}
+@keyframes hintGlow{50%{box-shadow:0 0 0 5px rgba(96,165,250,.8),0 0 26px rgba(96,165,250,.8)}}
+.rng{width:100%;accent-color:#e9b949}
+.kbd-list{font-size:12px;color:var(--muted);line-height:1.8;columns:2}
+.kbd-list kbd{display:inline-block;min-width:20px;text-align:center;padding:0 5px;border-radius:5px;background:#1a2a21;border:1px solid #2c4a39;color:var(--cream);font-family:inherit;font-weight:700}
+#musicBtn{padding:6px 8px}
+#musicBtn.off{opacity:.45}
+/* animações das cartas */
+.fx-drop{animation:fxDrop .34s cubic-bezier(.2,.9,.25,1.15) both}
+@keyframes fxDrop{0%{transform:translateY(-46px) rotate(-9deg) scale(1.18);opacity:.25}100%{transform:none;opacity:1}}
+.fx-pop{animation:fxPop .5s cubic-bezier(.2,.9,.25,1.3) both}
+@keyframes fxPop{0%{transform:scale(.55);opacity:0}60%{transform:scale(1.06);box-shadow:0 0 22px rgba(255,217,120,.8)}100%{transform:none}}
+.fx-grow{animation:fxGrow .6s ease-out}
+@keyframes fxGrow{0%{box-shadow:0 0 0 0 rgba(255,217,120,.9)}100%{box-shadow:0 0 0 14px rgba(255,217,120,0)}}
+.fx-score{animation:fxScore .5s ease-out;display:inline-block}
+@keyframes fxScore{40%{transform:scale(1.35);color:var(--gold-hi)}}
+#playerHand.dealing .card.fly-in{animation-delay:calc(var(--dl,0)*45ms)}
+.card{transition:transform .14s ease,box-shadow .14s ease}
+/* desempenho no celular: sem desfoque pesado, animações pausam com a aba escondida */
+@media(max-width:820px),(pointer:coarse){.modal{backdrop-filter:none;background:rgba(0,0,0,.86)}}
+body.tab-hidden *{animation-play-state:paused!important}
+/* acessibilidade */
+body.rm *{animation:none!important;transition:none!important}
+:focus-visible{outline:3px solid #7cc4ff;outline-offset:2px}
+.card:focus-visible{outline:3px solid #7cc4ff;outline-offset:3px;z-index:99!important}
+body.hc{--muted:#d3e2d8;--line:#6f9c80}
+body.hc .card{border:2px solid #000}
+body.hc .card.selected{outline:4px solid #fff;outline-offset:2px}
+body.hc .chip,body.hc .tb-btn{border:1px solid #fff}
+body.hc .seg button,body.hc .xs-btn,body.hc .link-btn{color:#fff}
+body.hc .modal .sheet{border:2px solid #fff}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:480px){.ach-grid{grid-template-columns:1fr}#musicBtn{padding:6px 7px}.kbd-list{columns:1}}
 </style>
 </head>
 <body>
@@ -479,7 +560,7 @@ button,.card,.seg button{touch-action:manipulation}
 
     <div id="firstCard" class="first-card hidden">
       <b>Primeira vez aqui?</b> Em 1 minuto você aprende: monte sequências do mesmo naipe, faça uma canastra limpa e bata primeiro.
-      <div><button id="firstRules" class="xs-btn gold">Ver como jogar</button> <button id="firstSkip" class="xs-btn">Já sei jogar</button></div>
+      <div><button id="firstRules" class="xs-btn gold">Ver como jogar</button> <button id="firstTut" class="xs-btn gold">🎓 Tutorial interativo</button> <button id="firstSkip" class="xs-btn">Já sei jogar</button></div>
     </div>
 
     <div class="menu-card">
@@ -509,6 +590,11 @@ button,.card,.seg button{touch-action:manipulation}
         <button id="btnTarget5000" onclick="setTarget(5000)">5.000<small>partida longa</small></button>
         <button id="btnTarget10000" onclick="setTarget(10000)">10.000<small>maratona</small></button>
       </div>
+      <label>MODO</label>
+      <div class="seg c2">
+        <button id="btnModoNormal" class="active">Normal<small>vale pontos e missões</small></button>
+        <button id="btnModoTreino">🎓 Treino<small>dica do mestre, sem valer</small></button>
+      </div>
       <button class="play-btn" onclick="startGame()">JOGAR</button>
       <button class="friend-btn" onclick="netHostStart()">👥 Jogar com um amigo (online)</button>
       <p class="friend-hint">Vocês dois de parceiros contra 2 adversários da IA. Escolha o nível e a meta (3.000 ou 5.000) na próxima tela. Você cria a sala e manda o link no WhatsApp.</p>
@@ -517,15 +603,20 @@ button,.card,.seg button{touch-action:manipulation}
         <button class="link-btn" onclick="buracoAbrir('lookModal')">🎨 Aparência</button>
         <button class="link-btn" onclick="buracoAbrir('statsModal')">📊 Estatísticas</button>
         <button class="link-btn" onclick="buracoAbrir('backupModal')">💾 Guardar progresso</button>
+        <button class="link-btn" onclick="buracoAbrir('tutModal')">🎓 Tutorial</button>
+        <button class="link-btn" onclick="buracoAbrir('metaModal')">🏅 Conquistas</button>
+        <button class="link-btn" onclick="buracoAbrir('somModal')">🔊 Som e acessibilidade</button>
       </div>
     </div>
+
+    <div id="perfilCard" class="perfil-card" data-notr></div>
 
     <div class="hist-card">
       <label class="hist-title">SEU HISTÓRICO</label>
       <div id="histBox"></div>
       <p class="hist-note">Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.</p>
     </div>
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 11/21 · mais estatísticas e temas</p>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0;opacity:.75">Versão 11/21 · missões, conquistas, tutorial, treino e música</p>
 
     <p class="foot">Buraco aberto · 2 baralhos · só o 2 é curinga · <b>Telas do Passado</b></p>
   </div>
@@ -538,6 +629,7 @@ button,.card,.seg button{touch-action:manipulation}
     <span id="gameModeBadge" class="chip gold">1x1</span>
     <span id="aiLevelBadge" class="chip blue">IA: Médio</span>
     <span id="targetBadge" class="chip gold">Meta 3.000</span>
+    <span id="treinoBadge" class="chip blue hidden">🎓 Treino</span>
     <span id="netPing" class="chip hidden" title="Atraso da conexão com o amigo"></span>
     <div class="scores">
       <div class="score us"><span class="who">NÓS</span><span id="scoreTeam1" class="num">0</span><span id="roundScoreTeam1" class="sub">(Queda: 0)</span></div>
@@ -545,6 +637,7 @@ button,.card,.seg button{touch-action:manipulation}
       <button id="fastBtn" class="tb-btn off" onclick="toggleRapido()" aria-label="Modo rápido">⚡</button>
       <button id="hintBtn" class="tb-btn" onclick="toggleDicas()" aria-label="Dicas">💡</button>
       <button id="soundBtn" class="tb-btn" onclick="toggleSound()" aria-label="Som">🔊</button>
+      <button id="musicBtn" class="tb-btn off" onclick="BuracoX.toggleMusic()" aria-label="Música">🎵</button>
       <button class="tb-btn" onclick="toggleRulesModal()" aria-label="Regras"><span class="t-long">Regras</span><span class="t-short">?</span></button>
       <button class="tb-btn" onclick="goToMenu()" aria-label="Menu"><span class="t-long">Menu</span><span class="t-short">☰</span></button>
     </div>
@@ -632,6 +725,7 @@ button,.card,.seg button{touch-action:manipulation}
         <button class="btn util" id="btnClear" onclick="clearSelection()">Limpar</button>
         <button class="btn util" onclick="sortPlayerHand()">Organizar mão</button>
         <button class="btn util" onclick="showPileModal()">Ver lixo</button>
+        <button class="btn util" id="btnMestre" onclick="BuracoX.dica()">💡 Dica do mestre</button>
       </div>
       <div id="handHint" class="hh hidden"></div>
       <div id="playerHand" class="hand"></div>
@@ -794,6 +888,47 @@ button,.card,.seg button{touch-action:manipulation}
     <div id="bkMsg" class="bk-msg" role="status"></div>
   </div>
 </div>
+
+<!-- ============ EXTRAS 2: perfil/missões/conquistas, tutorial, som e acessibilidade ============ -->
+<div id="metaModal" class="modal hidden" data-ext>
+  <div class="sheet ext-sheet">
+    <h3>🏅 Conquistas e missões</h3>
+    <p class="sub">Seu nível, as missões de hoje e as medalhas. Tudo salvo neste aparelho.</p>
+    <div id="metaBody" data-notr></div>
+    <button class="b-ok" style="width:100%;padding:12px;border-radius:12px;font-weight:800;border:1px solid;margin-top:12px" data-close>Fechar</button>
+  </div>
+</div>
+
+<div id="tutModal" class="modal hidden" data-ext>
+  <div class="sheet ext-sheet">
+    <h3>🎓 Tutorial interativo</h3>
+    <div class="tut-bar" id="tutBar" aria-hidden="true"></div>
+    <div id="tutBody" data-notr></div>
+    <div class="seg c2" style="margin-top:10px;margin-bottom:0"><button id="tutClose" data-close>Sair</button><button id="tutNext" class="active" disabled>Próxima</button></div>
+  </div>
+</div>
+
+<div id="somModal" class="modal hidden" data-ext>
+  <div class="sheet ext-sheet">
+    <h3>🔊 Som e acessibilidade</h3>
+    <p class="sub">Música, volume e conforto de leitura.</p>
+    <label class="lb">MÚSICA DE FUNDO</label>
+    <div class="seg c2" id="somMus"><button data-v="0">Desligada</button><button data-v="1">Ligada</button></div>
+    <label class="lb" for="somMusVol">VOLUME DA MÚSICA</label>
+    <input id="somMusVol" class="rng" type="range" min="0" max="100" step="5" aria-label="Volume da música">
+    <label class="lb" for="somFxVol">VOLUME DOS EFEITOS</label>
+    <input id="somFxVol" class="rng" type="range" min="0" max="100" step="5" aria-label="Volume dos efeitos">
+    <label class="lb">REDUZIR ANIMAÇÕES</label>
+    <div class="seg c2" id="somRm"><button data-v="0">Normal</button><button data-v="1">Reduzidas</button></div>
+    <label class="lb">ALTO CONTRASTE</label>
+    <div class="seg c2" id="somHc"><button data-v="0">Normal</button><button data-v="1">Alto contraste</button></div>
+    <label class="lb">ATALHOS DO TECLADO</label>
+    <div class="kbd-list"><kbd>M</kbd> comprar do monte<br><kbd>L</kbd> pegar o lixo<br><kbd>B</kbd> baixar sequência<br><kbd>E</kbd> encaixar<br><kbd>D</kbd> descartar<br><kbd>C</kbd> limpar seleção<br><kbd>O</kbd> organizar mão<br><kbd>H</kbd> dica (modo treino)<br><kbd>Tab</kbd> + <kbd>Enter</kbd> escolhe cartas</div>
+    <button class="b-ok" style="width:100%;padding:12px;border-radius:12px;font-weight:800;border:1px solid;margin-top:12px" data-close>Pronto</button>
+  </div>
+</div>
+
+<div id="achLive" class="sr-only" role="status" aria-live="polite"></div>
 
 <canvas id="confettiCv" class="hidden" aria-hidden="true"></canvas>
 
@@ -3815,7 +3950,7 @@ const I18N_ROWS = [
 ['3.000', '3,000', '3.000'], ['5.000', '5,000', '5.000'], ['1.000', '1,000', '1.000'],
 ['Fica salvo neste aparelho e navegador e nunca é apagado pelo jogo.', 'Saved on this device and browser, and never erased by the game.', 'Se guarda en este aparato y navegador y el juego nunca lo borra.'],
 ['Buraco aberto · 2 baralhos · só o 2 é curinga ·', 'Open Buraco · 2 decks · only the 2 is wild ·', 'Buraco abierto · 2 mazos · solo el 2 es comodín ·'],
-['Versão 11/21 · mais estatísticas e temas', 'Version 11/21 · more stats and themes', 'Versión 11/21 · más estadísticas y temas'],
+['Versão 11/21 · missões, conquistas, tutorial, treino e música', 'Version 11/21 · more stats and themes', 'Versión 11/21 · más estadísticas y temas'],
 ['Queda retomada de onde você parou.', 'Round resumed where you left off.', 'Ronda retomada donde la dejaste.'],
 [' · queda em andamento', ' · round in progress', ' · ronda en curso'],
 ['VOCÊ ESTAVA NA SALA', 'YOU WERE IN ROOM', 'ESTABAS EN LA SALA'],
@@ -4120,7 +4255,45 @@ const I18N_ROWS = [
 ['Estatísticas contadas desde ', 'Stats counted since ', 'Estadísticas contadas desde '],
 ['. Para guardar ao trocar de celular, use "Guardar progresso".', '. To keep them when you change phones, use "Save progress".', '. Para guardarlas al cambiar de celular, usa "Guardar progreso".'],
 [' pts', ' pts', ' pts'], [' V · ', ' W · ', ' G · '], [' D', ' L', ' P'],
-['IA', 'AI', 'IA']
+['IA', 'AI', 'IA'],
+// ===== extras 2 (missões, tutorial, som) =====
+['🏅 Conquistas e missões', '🏅 Achievements and missions', '🏅 Logros y misiones'],
+['Seu nível, as missões de hoje e as medalhas. Tudo salvo neste aparelho.', 'Your level, today\'s missions and your medals. All saved on this device.', 'Tu nivel, las misiones de hoy y tus medallas. Todo guardado en este aparato.'],
+['🎓 Tutorial interativo', '🎓 Interactive tutorial', '🎓 Tutorial interactivo'],
+['🎓 Tutorial', '🎓 Tutorial', '🎓 Tutorial'],
+['🏅 Conquistas', '🏅 Achievements', '🏅 Logros'],
+['Sair', 'Leave', 'Salir'],
+['Próxima', 'Next', 'Siguiente'],
+['🔊 Som e acessibilidade', '🔊 Sound and accessibility', '🔊 Sonido y accesibilidad'],
+['Música, volume e conforto de leitura.', 'Music, volume and reading comfort.', 'Música, volumen y comodidad de lectura.'],
+['MÚSICA DE FUNDO', 'BACKGROUND MUSIC', 'MÚSICA DE FONDO'],
+['Desligada', 'Off', 'Apagada'],
+['Ligada', 'On', 'Encendida'],
+['VOLUME DA MÚSICA', 'MUSIC VOLUME', 'VOLUMEN DE LA MÚSICA'],
+['VOLUME DOS EFEITOS', 'EFFECTS VOLUME', 'VOLUMEN DE EFECTOS'],
+['Volume da música', 'Music volume', 'Volumen de la música'],
+['REDUZIR ANIMAÇÕES', 'REDUCE ANIMATIONS', 'REDUCIR ANIMACIONES'],
+['Normal', 'Normal', 'Normal'],
+['Reduzidas', 'Reduced', 'Reducidas'],
+['ALTO CONTRASTE', 'HIGH CONTRAST', 'ALTO CONTRASTE'],
+['Alto contraste', 'High contrast', 'Alto contraste'],
+['ATALHOS DO TECLADO', 'KEYBOARD SHORTCUTS', 'ATAJOS DE TECLADO'],
+[' comprar do monte', ' draw from the stock', ' robar del mazo'],
+[' pegar o lixo', ' take the discard pile', ' tomar el descarte'],
+[' baixar sequência', ' lay down a run', ' bajar secuencia'],
+[' encaixar', ' add to a meld', ' encajar'],
+[' descartar', ' discard', ' descartar'],
+[' limpar seleção', ' clear selection', ' limpiar selección'],
+[' organizar mão', ' sort hand', ' ordenar mano'],
+[' dica (modo treino)', ' hint (training mode)', ' pista (modo práctica)'],
+[' escolhe cartas', ' picks cards', ' elige cartas'],
+['MODO', 'MODE', 'MODO'],
+['vale pontos e missões', 'counts for points and missions', 'cuenta para puntos y misiones'],
+['🎓 Treino', '🎓 Training', '🎓 Práctica'],
+['dica do mestre, sem valer', 'master hints, not counted', 'pistas del maestro, sin contar'],
+['💡 Dica do mestre', '💡 Master hint', '💡 Pista del maestro'],
+['Música', 'Music', 'Música'],
+['Versão 11/21 · missões, conquistas, tutorial, treino e música', 'Version 11/21 · missions, achievements, tutorial, training and music', 'Versión 11/21 · misiones, logros, tutorial, práctica y música']
 ];
 
 const I18N_LOCALES = { pt: 'pt-BR', en: 'en-US', es: 'es-AR' };
@@ -4146,7 +4319,7 @@ const I18N_CACHE = { en: new Map(), es: new Map() };
 const I18N_W = /[\p{L}\p{N}]/u;
 function tr(s, L) {
     L = L || appLang;
-    if (L === 'pt' || !s) return s;
+    if (L === 'pt' || !s || s.charCodeAt(0) === 0x2063) return s;   // U+2063 = "já traduzido" (textos montados com tx())
     const cache = I18N_CACHE[L];
     let hit = cache.get(s); if (hit !== undefined) return hit;
     const idx = I18N_IDX[L]; let out = '', i = 0;
@@ -4179,12 +4352,13 @@ let i18nObs = null, i18nBusy = false;
 function i18nNode(n) {
     if (n.nodeType === 3) {
         const p = n.parentNode; if (p && (p.nodeName === 'SCRIPT' || p.nodeName === 'STYLE')) return;
+        if (p && p.closest && p.closest('[data-notr]')) return;
         let rec = i18nText.get(n);
         if (rec && n.data === rec.t) { if (appLang === 'pt') { n.data = rec.o; i18nText.delete(n); } else if (rec.l !== appLang) { rec.t = tr(rec.o); rec.l = appLang; n.data = rec.t; } return; }
         const o = n.data; const t = tr(o);
         if (t !== o) { i18nText.set(n, { o, t, l: appLang }); n.data = t; } else if (rec) i18nText.delete(n);
     } else if (n.nodeType === 1) {
-        if (n.nodeName === 'SCRIPT' || n.nodeName === 'STYLE') return;
+        if (n.nodeName === 'SCRIPT' || n.nodeName === 'STYLE' || (n.hasAttribute && n.hasAttribute('data-notr'))) return;
         I18N_ATTRS.forEach(a => i18nAttrOne(n, a));
         for (let c = n.firstChild; c; c = c.nextSibling) i18nNode(c);
     }
@@ -4266,7 +4440,8 @@ if (document.readyState !== 'loading') setLang(appLang);
     const $ = id => document.getElementById(id);
     const LOOK_KEY = 'buraco_aparencia_v1', STATS_KEY = 'buraco_stats_v1', SEEN_KEY = 'buraco_visto_v1';
     const BACKUP_KEYS = ['buraco_historico_telasdopassado_v1', 'buraco_stats_v1', 'buraco_meta_v1', 'buraco_aparencia_v1',
-        'buraco_partida_andamento_v1', 'buracoLang', 'buracoEstilo', 'buracoDicas', 'buracoRapido', 'buracoSom'];
+        'buraco_partida_andamento_v1', 'buracoLang', 'buracoEstilo', 'buracoDicas', 'buracoRapido', 'buracoSom',
+        'buraco_conq_v1', 'buraco_missoes_v1', 'buraco_perfil_v1', 'buraco_tutorial_v1', 'buraco_treino_v1', 'buraco_musica_v1', 'buraco_acess_v1'];
     const MESAS = ['verde', 'azul', 'vinho', 'noir', 'sepia'], DORSOS = ['azul', 'vinho', 'preto', 'verde'];
     const loc = () => window.__locale || 'pt-BR';
     const fmt = n => Number(n || 0).toLocaleString(loc());
@@ -4485,20 +4660,549 @@ if (document.readyState !== 'loading') setLang(appLang);
     window.calculateFinalScores = function (w) {
         const was = roundScored;
         const r = _cfs.apply(this, arguments);
-        if (!was && roundScored && netRole !== 'guest') { try { statsRound(w === undefined ? -1 : w); } catch (e) { } }
+        if (!was && roundScored && netRole !== 'guest' && !window.buracoTreino) { try { statsRound(w === undefined ? -1 : w); } catch (e) { } }
         return r;
     };
     const _rm = window.recordMatch;
     window.recordMatch = function (winner) {
         const was = matchRecorded;
         const r = _rm.apply(this, arguments);
-        if (!was && matchRecorded && netRole !== 'guest') { try { statsMatch(winner === 0); } catch (e) { } }
+        if (!was && matchRecorded && netRole !== 'guest' && !window.buracoTreino) { try { statsMatch(winner === 0); } catch (e) { } }
         return r;
     };
 
+    window.__celebrate = celebrate;
     applyLook(); wireLook(); wireModals(); wireBackup();
     document.addEventListener('DOMContentLoaded', firstRun);
     if (document.readyState !== 'loading') firstRun();
+})();
+</script>
+
+<script>
+/* =====================================================================
+   EXTRAS 2 — perfil, missões diárias, conquistas, modo treino com dicas,
+   tutorial interativo, música, animações e acessibilidade.
+   Organizado em módulos pequenos que conversam por um "barramento de
+   eventos" (BuracoX.on / BuracoX.emit). O jogo principal só é tocado
+   por quatro ganchos finos: calculateFinalScores, recordMatch, ações do
+   jogador e updateUI. A IA e a rede NÃO são alteradas aqui.
+   Eventos: round, match, canasta, meld, pile, tutorial, dica
+   ===================================================================== */
+(function () {
+    'use strict';
+    const $ = id => document.getElementById(id);
+    const K = { conq: 'buraco_conq_v1', miss: 'buraco_missoes_v1', perfil: 'buraco_perfil_v1', tut: 'buraco_tutorial_v1',
+        treino: 'buraco_treino_v1', mus: 'buraco_musica_v1', acc: 'buraco_acess_v1', stats: 'buraco_stats_v1' };
+    function lj(k, d) { try { const r = JSON.parse(localStorage.getItem(k)); return r && typeof r === 'object' ? r : d; } catch (e) { return d; } }
+    function sj(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const loc = () => window.__locale || 'pt-BR';
+    const fmt = n => Number(n || 0).toLocaleString(loc());
+    const LI = () => ({ pt: 0, en: 1, es: 2 }[appLang] || 0);
+    const tx = a => (typeof a === 'string') ? a : (a[LI()] || a[0]);          // a = [pt, en, es]
+
+    /* ---------------- barramento de eventos ---------------- */
+    const bus = { h: {}, on(e, f) { (this.h[e] = this.h[e] || []).push(f); }, emit(e, d) { (this.h[e] || []).slice().forEach(f => { try { f(d); } catch (x) { } }); } };
+    const BX = window.BuracoX = { on: bus.on.bind(bus), emit: bus.emit.bind(bus) };
+
+    /* ---------------- modo treino ---------------- */
+    let treino = !!lj(K.treino, {}).on;
+    const treinoAtivo = () => treino && !netRole;
+    Object.defineProperty(window, 'buracoTreino', { get: treinoAtivo });
+    function setTreino(v) {
+        treino = !!v; sj(K.treino, { on: treino ? 1 : 0 });
+        const a = $('btnModoNormal'), b = $('btnModoTreino');
+        if (a) a.classList.toggle('active', !treino); if (b) b.classList.toggle('active', treino);
+        document.body.classList.toggle('treino-on', treinoAtivo());
+    }
+
+    /* ---------------- perfil (XP e nível) ---------------- */
+    const TITULOS = [['Iniciante', 'Beginner', 'Principiante'], ['Amigo da mesa', 'Table buddy', 'Amigo de la mesa'], ['Jogador de casa', 'Home player', 'Jugador de casa'], ['Canastreiro', 'Canasta fan', 'Canastero'], ['Mestre da canastra', 'Canasta master', 'Maestro de la canasta'], ['Lenda das Telas', 'Screen legend', 'Leyenda de las Telas']];
+    function perfil() { return Object.assign({ xp: 0, dicas: 0 }, lj(K.perfil, {})); }
+    function nivelDe(xp) { const lv = 1 + Math.floor(Math.sqrt(xp / 60)); return { lv, base: 60 * (lv - 1) * (lv - 1), next: 60 * lv * lv, titulo: tx(TITULOS[Math.min(5, Math.floor((lv - 1) / 2))]) }; }
+    function ganharXP(n) {
+        const p = perfil(), antes = nivelDe(p.xp).lv; p.xp += Math.max(0, Math.round(n)); sj(K.perfil, p);
+        const dep = nivelDe(p.xp).lv;
+        if (dep > antes) aviso(['⬆️ Nível ' + dep, '⬆️ Level ' + dep, '⬆️ Nivel ' + dep], nivelDe(p.xp).titulo);
+    }
+
+    /* ---------------- aviso (toast de conquista) ---------------- */
+    let avisoT = 0;
+    function aviso(titulo, sub) {
+        try {
+            let el = $('achToast');
+            if (!el) { el = document.createElement('div'); el.id = 'achToast'; el.className = 'ach-toast hidden'; el.setAttribute('data-notr', ''); document.body.appendChild(el); }
+            titulo = tx(titulo); sub = sub && tx(sub);
+            el.innerHTML = esc(titulo) + (sub ? '<small>' + esc(sub) + '</small>' : '');
+            el.classList.remove('hidden'); el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+            const live = $('achLive'); if (live) live.textContent = titulo + (sub ? '. ' + sub : '');
+            clearTimeout(avisoT); avisoT = setTimeout(() => el.classList.add('hidden'), 4200);
+            try { if (typeof sndPlay === 'function') sndPlay('morto'); } catch (e) { }
+        } catch (e) { }
+    }
+
+    /* ---------------- conquistas ---------------- */
+    const st = () => Object.assign({ seq: 0, online: [0, 0] }, lj(K.stats, {}));
+    const ACH = [
+        { id: 'primeira', ico: '🥇', n: ['Primeira vitória', 'First win', 'Primera victoria'], d: ['Vença uma partida.', 'Win a match.', 'Gana una partida.'], ev: 'match', t: d => d.win },
+        { id: 'aluno', ico: '🎓', n: ['Aluno aplicado', 'Diligent student', 'Alumno aplicado'], d: ['Conclua o tutorial interativo.', 'Finish the interactive tutorial.', 'Completa el tutorial interactivo.'], ev: 'tutorial', t: () => true },
+        { id: 'limpa', ico: '✨', n: ['Canastra limpa', 'Clean canasta', 'Canasta limpia'], d: ['Faça uma canastra limpa.', 'Make a clean canasta.', 'Haz una canasta limpia.'], ev: 'canasta', t: d => ['CLEAN', 'FIVE_TO_KING', 'REAL'].includes(d.type) },
+        { id: 'c500', ico: '👑', n: ['Canastra de 500', '500 canasta', 'Canasta de 500'], d: ['Faça uma sequência limpa de 13 cartas.', 'Make a clean 13-card run.', 'Haz una secuencia limpia de 13 cartas.'], ev: 'canasta', t: d => d.type === 'FIVE_TO_KING' },
+        { id: 'real', ico: '💎', n: ['Realeza', 'Royalty', 'Realeza'], d: ['Faça uma canastra real (14 cartas).', 'Make a royal canasta (14 cards).', 'Haz una canasta real (14 cartas).'], ev: 'canasta', t: d => d.type === 'REAL' },
+        { id: 'bateu', ico: '🔔', n: ['Bateu!', 'Went out!', '¡Cortaste!'], d: ['Bata e encerre uma queda.', 'Go out and end a round.', 'Corta y termina una ronda.'], ev: 'round', t: d => d.bat },
+        { id: 'morto', ico: '⚰️', n: ['Cavador de morto', 'Dead-hand digger', 'Cavador de muerto'], d: ['Pegue o morto em uma queda.', 'Take the dead hand in a round.', 'Toma el muerto en una ronda.'], ev: 'round', t: d => d.morto },
+        { id: 'q500', ico: '🔥', n: ['Queda de 500', '500-point round', 'Ronda de 500'], d: ['Faça 500 pontos ou mais numa queda.', 'Score 500 points or more in a round.', 'Haz 500 puntos o más en una ronda.'], ev: 'round', t: d => d.score >= 500 },
+        { id: 'q1000', ico: '🚀', n: ['Queda de mil', 'Thousand-point round', 'Ronda de mil'], d: ['Faça 1.000 pontos ou mais numa queda.', 'Score 1,000 points or more in a round.', 'Haz 1.000 puntos o más en una ronda.'], ev: 'round', t: d => d.score >= 1000 },
+        { id: 'dobra', ico: '🎯', n: ['Dobradinha', 'Double clean', 'Doblete'], d: ['Termine uma queda com 2 canastras limpas.', 'End a round with 2 clean canastas.', 'Termina una ronda con 2 canastas limpias.'], ev: 'round', t: d => (d.cana.CLEAN + d.cana.FIVE_TO_KING + d.cana.REAL) >= 2 },
+        { id: 'seq3', ico: '🔗', n: ['Três seguidas', 'Three in a row', 'Tres seguidas'], d: ['Vença 3 partidas seguidas.', 'Win 3 matches in a row.', 'Gana 3 partidas seguidas.'], ev: 'match', t: () => st().seq >= 3 },
+        { id: 'dificil', ico: '🛡️', n: ['Calejado', 'Seasoned', 'Curtido'], d: ['Vença no nível Difícil ou Mestre.', 'Win on Hard or Master level.', 'Gana en nivel Difícil o Maestro.'], ev: 'match', t: d => d.win && ['hard', 'master'].includes(d.level) },
+        { id: 'mestre', ico: '🏆', n: ['Domou o Mestre', 'Tamed the Master', 'Domó al Maestro'], d: ['Vença a IA no nível Mestre.', 'Beat the AI on Master level.', 'Vence a la IA en nivel Maestro.'], ev: 'match', t: d => d.win && d.level === 'master' },
+        { id: 'v10', ico: '🔟', n: ['Dez vitórias', 'Ten wins', 'Diez victorias'], d: ['Some 10 vitórias.', 'Reach 10 wins.', 'Suma 10 victorias.'], ev: 'match', t: () => histLoad().v >= 10 },
+        { id: 'p50', ico: '🎖️', n: ['Veterano', 'Veteran', 'Veterano'], d: ['Jogue 50 partidas.', 'Play 50 matches.', 'Juega 50 partidas.'], ev: 'match', t: () => { const h = histLoad(); return h.v + h.d >= 50; } },
+        { id: 'lixo', ico: '🗑️', n: ['Lixeiro', 'Pile collector', 'Recolector'], d: ['Pegue um lixo com 8 cartas ou mais.', 'Take a discard pile of 8+ cards.', 'Toma un descarte de 8 cartas o más.'], ev: 'pile', t: d => d.n >= 8 },
+        { id: 'online', ico: '👥', n: ['Mesa com amigo', 'Table with a friend', 'Mesa con amigo'], d: ['Vença uma partida online com amigo.', 'Win an online match with a friend.', 'Gana una partida en línea con un amigo.'], ev: 'match', t: () => st().online[0] >= 1 },
+        { id: 'missao', ico: '🎯', n: ['Missão cumprida', 'Mission accomplished', 'Misión cumplida'], d: ['Complete as 3 missões de um dia.', 'Complete all 3 missions of a day.', 'Completa las 3 misiones de un día.'], ev: 'dia', t: () => true },
+        { id: 'semana', ico: '📅', n: ['Semana na mesa', 'Week at the table', 'Semana en la mesa'], d: ['Complete as missões por 7 dias seguidos.', 'Complete the missions 7 days in a row.', 'Completa las misiones 7 días seguidos.'], ev: 'dia', t: d => d.streak >= 7 },
+        { id: 'aprendiz', ico: '🧠', n: ['Aprendiz de mestre', 'Master apprentice', 'Aprendiz de maestro'], d: ['Use 10 dicas do mestre no modo treino.', 'Use 10 master hints in training mode.', 'Usa 10 pistas del maestro en modo práctica.'], ev: 'dica', t: () => perfil().dicas >= 10 }
+    ];
+    const conq = () => lj(K.conq, {});
+    ACH.forEach(a => bus.on(a.ev, d => {
+        const c = conq(); if (c[a.id]) return;
+        let ok = false; try { ok = a.t(d || {}); } catch (e) { }
+        if (!ok) return;
+        c[a.id] = Date.now(); sj(K.conq, c);
+        aviso(['🏅 Conquista: ' + a.n[0], '🏅 Achievement: ' + a.n[1], '🏅 Logro: ' + a.n[2]], a.d); ganharXP(40); renderPerfil();
+    }));
+
+    /* ---------------- missões diárias ---------------- */
+    const POOL = [
+        { id: 'win', txt: ['Vença 1 partida', 'Win 1 match', 'Gana 1 partida'], t: 1, ev: 'match', f: d => d.win ? 1 : 0 },
+        { id: 'win22', txt: ['Vença uma partida 2×2', 'Win a 2×2 match', 'Gana una partida 2×2'], t: 1, ev: 'match', f: d => (d.win && d.mode === '2x2') ? 1 : 0 },
+        { id: 'winhard', txt: ['Vença no Difícil ou no Mestre', 'Win on Hard or Master', 'Gana en Difícil o Maestro'], t: 1, ev: 'match', f: d => (d.win && ['hard', 'master'].includes(d.level)) ? 1 : 0 },
+        { id: 'rounds', txt: ['Jogue 3 quedas', 'Play 3 rounds', 'Juega 3 rondas'], t: 3, ev: 'round', f: () => 1 },
+        { id: 'clean', txt: ['Faça 1 canastra limpa', 'Make 1 clean canasta', 'Haz 1 canasta limpia'], t: 1, ev: 'canasta', f: d => ['CLEAN', 'FIVE_TO_KING', 'REAL'].includes(d.type) ? 1 : 0 },
+        { id: 'cana2', txt: ['Faça 2 canastras (qualquer tipo)', 'Make 2 canastas (any kind)', 'Haz 2 canastas (cualquier tipo)'], t: 2, ev: 'canasta', f: () => 1 },
+        { id: 'bat', txt: ['Bata 1 vez', 'Go out once', 'Corta 1 vez'], t: 1, ev: 'round', f: d => d.bat ? 1 : 0 },
+        { id: 'morto', txt: ['Pegue o morto em 2 quedas', 'Take the dead hand in 2 rounds', 'Toma el muerto en 2 rondas'], t: 2, ev: 'round', f: d => d.morto ? 1 : 0 },
+        { id: 'q400', txt: ['Faça 400 pontos numa queda', 'Score 400 points in one round', 'Haz 400 puntos en una ronda'], t: 1, ev: 'round', f: d => d.score >= 400 ? 1 : 0 },
+        { id: 'lixo', txt: ['Pegue o lixo 2 vezes', 'Take the discard pile twice', 'Toma el descarte 2 veces'], t: 2, ev: 'pile', f: () => 1 },
+        { id: 'meld5', txt: ['Baixe 5 jogos', 'Lay down 5 melds', 'Baja 5 juegos'], t: 5, ev: 'meld', f: d => d.n || 1 }
+    ];
+    const hoje = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+    const ontem = () => { const d = new Date(Date.now() - 864e5); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+    function rng(seedStr) { let h = 1779033703 ^ seedStr.length; for (let i = 0; i < seedStr.length; i++) { h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } let a = h >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+    function missoes() {
+        const d = hoje(); let m = lj(K.miss, null);
+        if (!m || m.d !== d) {
+            const r = rng('buraco-' + d), pool = POOL.slice(), ids = [];
+            while (ids.length < 3) ids.push(pool.splice(Math.floor(r() * pool.length), 1)[0].id);
+            m = { d, ids, p: {}, done: 0, streak: m ? (m.streak || 0) : 0, last: m ? (m.last || '') : '' };
+            sj(K.miss, m);
+        }
+        return m;
+    }
+    const streakAtual = m => (m.last === hoje() || m.last === ontem()) ? m.streak : 0;
+    function missEv(ev, data) {
+        if (treinoAtivo()) return;
+        const m = missoes(); let mudou = false;
+        m.ids.forEach(id => {
+            const def = POOL.find(x => x.id === id); if (!def || def.ev !== ev) return;
+            const antes = m.p[id] || 0; if (antes >= def.t) return;
+            let inc = 0; try { inc = def.f(data || {}) || 0; } catch (e) { }
+            if (!inc) return;
+            m.p[id] = Math.min(def.t, antes + inc); mudou = true;
+            if (m.p[id] >= def.t) { aviso(['🎯 Missão cumprida', '🎯 Mission complete', '🎯 Misión cumplida'], def.txt); ganharXP(50); }
+        });
+        if (!mudou) return;
+        if (!m.done && m.ids.every(id => (m.p[id] || 0) >= POOL.find(x => x.id === id).t)) {
+            m.done = 1; m.streak = (m.last === ontem()) ? m.streak + 1 : 1; m.last = hoje();
+            sj(K.miss, m); ganharXP(100);
+            aviso(['🎉 Missões do dia completas!', '🎉 Daily missions complete!', '🎉 ¡Misiones del día completas!'], ['Sequência: ' + m.streak + (m.streak > 1 ? ' dias' : ' dia'), 'Streak: ' + m.streak + (m.streak > 1 ? ' days' : ' day'), 'Racha: ' + m.streak + (m.streak > 1 ? ' días' : ' día')]);
+            bus.emit('dia', { streak: m.streak });
+        } else sj(K.miss, m);
+        renderPerfil();
+    }
+    ['round', 'match', 'canasta', 'meld', 'pile'].forEach(ev => bus.on(ev, d => missEv(ev, d)));
+
+    /* ---------------- ganhos de XP por eventos ---------------- */
+    bus.on('round', d => ganharXP(10 + Math.min(70, Math.floor(Math.max(0, d.score) / 20)) + (d.bat ? 25 : 0)));
+    bus.on('match', d => ganharXP(d.win ? 60 : 15));
+
+    /* ---------------- ganchos finos no jogo ---------------- */
+    function canaSnap() {
+        const o = { CLEAN: 0, DIRTY: 0, FIVE_TO_KING: 0, REAL: 0 };
+        try { (teamMelds[0] || []).forEach(m => { const e = evaluateCanasta(m); if (e.isCanasta && e.type in o) o[e.type]++; }); } catch (e) { }
+        return o;
+    }
+    const _cfs = window.calculateFinalScores;
+    window.calculateFinalScores = function (w) {
+        const was = roundScored;
+        const r = _cfs.apply(this, arguments);
+        if (!was && roundScored && netRole !== 'guest' && !treinoAtivo()) {
+            try { bus.emit('round', { bat: w === 0, morto: !!deadDecksTaken[0], score: roundScores[0] || 0, opp: roundScores[1] || 0, cana: canaSnap() }); } catch (e) { }
+        }
+        return r;
+    };
+    const _rm = window.recordMatch;
+    window.recordMatch = function (winner) {
+        if (treinoAtivo()) { matchRecorded = true; return; }            // treino não entra no histórico
+        const was = matchRecorded;
+        const r = _rm.apply(this, arguments);
+        if (!was && matchRecorded && netRole !== 'guest') {
+            try { bus.emit('match', { win: winner === 0, level: aiLevel, mode: gameMode, online: netRole === 'host' }); } catch (e) { }
+        }
+        return r;
+    };
+    function wrapAction(name, after) {
+        const f = window[name]; if (typeof f !== 'function') return;
+        window[name] = function () {
+            let b = null; try { b = { melds: teamMelds[0].length, cana: canaSnap(), pile: discardPile.length, drew: hasDrawn }; } catch (e) { }
+            const r = f.apply(this, arguments);
+            try { if (b && !treinoAtivo() && netRole !== 'guest') after(b); } catch (e) { }
+            return r;
+        };
+    }
+    function diffCana(b) {
+        const a = canaSnap();
+        Object.keys(a).forEach(t => { for (let i = b.cana[t]; i < a[t]; i++) bus.emit('canasta', { type: t }); });
+    }
+    wrapAction('playerMeldsSelected', b => { const n = teamMelds[0].length - b.melds; if (n > 0) bus.emit('meld', { n }); diffCana(b); });
+    wrapAction('playerAttachSelected', b => diffCana(b));
+    wrapAction('confirmDrawFromDiscard', b => { if (!b.drew && hasDrawn && b.pile > 0) bus.emit('pile', { n: b.pile }); });
+
+    /* ---------------- tela inicial: cartão de perfil e missões ---------------- */
+    const dias = n => n === 1 ? ['dia', 'day', 'día'] : ['dias', 'days', 'días'];
+    function missRows(m) {
+        return m.ids.map(id => {
+            const def = POOL.find(x => x.id === id), v = m.p[id] || 0, ok = v >= def.t;
+            return `<div class="ms-row${ok ? ' ok' : ''}"><span>${ok ? '✅' : '🎯'}</span><span class="ms-t">${esc(tx(def.txt))}</span><span class="ms-p">${v}/${def.t}</span></div>`;
+        }).join('');
+    }
+    function renderPerfil() {
+        const el = $('perfilCard'); if (!el) return;
+        const p = perfil(), n = nivelDe(p.xp), m = missoes(), sk = streakAtual(m);
+        const pct = Math.max(0, Math.min(100, Math.round((p.xp - n.base) * 100 / (n.next - n.base))));
+        const got = Object.keys(conq()).length;
+        el.innerHTML = `<div class="pf-top"><div class="pf-lv" aria-label="${tx(['Nível', 'Level', 'Nivel'])} ${n.lv}">${n.lv}</div>
+          <div class="pf-info"><b>${esc(n.titulo)}</b><small>${fmt(p.xp)} XP · ${tx(['faltam', 'need', 'faltan'])} ${fmt(n.next - p.xp)} ${tx(['para o nível', 'for level', 'para el nivel'])} ${n.lv + 1}</small>
+          <div class="xpbar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div></div></div>
+          <label style="display:block;font-size:11px;letter-spacing:.08em;color:var(--muted);margin:12px 0 6px">${tx(['MISSÕES DE HOJE', "TODAY'S MISSIONS", 'MISIONES DE HOY'])}${m.done ? tx([' — COMPLETAS!', ' — COMPLETE!', ' — ¡COMPLETAS!']) : ''}</label>
+          <div class="pf-miss">${missRows(m)}</div>
+          <div class="pf-foot"><span>🔥 ${tx(['Sequência', 'Streak', 'Racha'])}: ${sk} ${tx(dias(sk))} · 🏅 ${got}/${ACH.length}</span><button class="xs-btn" onclick="buracoAbrir('metaModal')">${tx(['Ver conquistas', 'See achievements', 'Ver logros'])}</button></div>`;
+    }
+    function renderMeta() {
+        const p = perfil(), n = nivelDe(p.xp), c = conq(), m = missoes(), sk = streakAtual(m);
+        const grid = ACH.map(a => { const g = !!c[a.id];
+            return `<div class="ach ${g ? 'got' : 'lock'}"><span class="ai">${g ? a.ico : '🔒'}</span><div><b>${esc(tx(a.n))}</b><span>${esc(tx(a.d))}${g ? ' · ' + new Date(c[a.id]).toLocaleDateString(loc()) : ''}</span></div></div>`; }).join('');
+        $('metaBody').innerHTML = `<div class="pf-top"><div class="pf-lv">${n.lv}</div><div class="pf-info"><b>${esc(n.titulo)}</b><small>${fmt(p.xp)} XP · ${tx(['sequência de', 'streak of', 'racha de'])} ${sk} ${tx(dias(sk))}</small>
+          <div class="xpbar"><i style="width:${Math.round((p.xp - n.base) * 100 / (n.next - n.base))}%"></i></div></div></div>
+          <label class="lb">${tx(['MISSÕES DE HOJE (novas todo dia)', "TODAY'S MISSIONS (new every day)", 'MISIONES DE HOY (nuevas cada día)'])}</label><div class="pf-miss">${missRows(m)}</div>
+          <label class="lb">${tx(['CONQUISTAS', 'ACHIEVEMENTS', 'LOGROS'])} ${Object.keys(c).length}/${ACH.length}</label><div class="ach-grid">${grid}</div>
+          <p class="hist-note" style="margin-top:10px">${tx(['Partidas no modo treino e online com convidado não contam para missões e conquistas.', 'Training-mode matches and online matches as a guest do not count toward missions and achievements.', 'Las partidas en modo práctica y en línea como invitado no cuentan para misiones y logros.'])}</p>`;
+    }
+
+    /* ---------------- dica do mestre (modo treino) ---------------- */
+    const NOMES = [{ 11: 'Valete', 12: 'Dama', 13: 'Rei', 14: 'Ás' }, { 11: 'Jack', 12: 'Queen', 13: 'King', 14: 'Ace' }, { 11: 'Jota', 12: 'Reina', 13: 'Rey', 14: 'As' }];
+    const NAIPES = [{ '♠': 'espadas', '♥': 'copas', '♣': 'paus', '♦': 'ouros' }, { '♠': 'spades', '♥': 'hearts', '♣': 'clubs', '♦': 'diamonds' }, { '♠': 'picas', '♥': 'corazones', '♣': 'tréboles', '♦': 'diamantes' }];
+    const nomeCarta = c => { const i = LI(); return (NOMES[i][c.value] || c.value) + (i === 1 ? ' of ' : ' de ') + (NAIPES[i][c.suit] || c.suit); };
+    const curto = cs => cs.map(c => getCardLabel(c.value) + c.suit).join(' ');
+    function glow(el) { if (!el) return; el.classList.remove('hintglow'); void el.offsetWidth; el.classList.add('hintglow'); setTimeout(() => el.classList.remove('hintglow'), 3000); }
+    function dizer(t) { t = '\u2063' + tx(t); try { logStatus(t); } catch (e) { } showToast(t, ''); }
+    function dica() {
+        if (!treinoAtivo()) return;
+        if (!players.length || rodadaEncerrada) return dizer(['💡 A queda já terminou.', '💡 The round is over.', '💡 La ronda ya terminó.']);
+        if (turnIndex !== 0) return dizer(['💡 Espere a sua vez para pedir a dica.', '💡 Wait for your turn to ask for a hint.', '💡 Espera tu turno para pedir la pista.']);
+        const p = perfil(); p.dicas++; sj(K.perfil, p); bus.emit('dica', {});
+        const me = { id: 0, team: 0, name: 'Você', isHuman: true, hand: players[0].hand };
+        try { aiRefreshKnown(); } catch (e) { }
+        const piles = document.querySelectorAll('.pile.click');
+        let ctx; try { ctx = aiMakeCtx(me, 'master'); } catch (e) { return dizer(['💡 Sem dica agora.', '💡 No hint right now.', '💡 Sin pista ahora.']); }
+        if (!hasDrawn) {
+            let ch = 'deck'; try { ch = aiDecideDraw(me, 'master', ctx); } catch (e) { }
+            const n = discardPile.length;
+            if (ch === 'pile') { glow(piles[1]); return dizer([`💡 Pegue o LIXO (${n} cartas): o mestre calcula que elas valem mais do que uma carta desconhecida do monte. Lembre: você leva a pilha toda para a mão.`, `💡 Take the DISCARD pile (${n} cards): the master calculates they are worth more than an unknown card from the stock. Remember: you take the whole pile.`, `💡 Toma el DESCARTE (${n} cartas): el maestro calcula que valen más que una carta desconocida del mazo. Recuerda: te llevas toda la pila.`]); }
+            if (ch === 'end') return dizer(['💡 O monte acabou. O mestre não vê vantagem em pegar o lixo; a queda deve terminar.', '💡 The stock is empty. The master sees no gain in taking the pile; the round should end.', '💡 Se acabó el mazo. El maestro no ve ventaja en tomar el descarte; la ronda debe terminar.']);
+            glow(piles[0]); return dizer(['💡 Compre do MONTE: o lixo não compensa agora (poucas cartas úteis ou o risco de abrir jogo para os adversários).', '💡 Draw from the STOCK: the discard pile is not worth it now (few useful cards or it would help your opponents).', '💡 Roba del MAZO: el descarte no conviene ahora (pocas cartas útiles o ayudaría a los rivales).']);
+        }
+        let plan = { steps: [] }; try { plan = aiPlan(me, me.hand, ctx); } catch (e) { }
+        const step = plan.steps.find(s => s.t !== 'mrg');
+        if (step && step.t === 'new') {
+            const cs = step.cards.map(c => me.hand.find(h => h.id === c.id)).filter(Boolean), w = cs.some(c => c.value === 2) && cs.some(c => c.value !== 2);
+            selectedCards = cs; updateUI();
+            return dizer([`💡 Baixe um jogo novo: ${curto(cs)}${w ? ' (o 2 está fazendo de curinga)' : ''}. As cartas já estão marcadas: toque em "Baixar sequência". Depois peça outra dica.`, `💡 Lay down a new meld: ${curto(cs)}${w ? ' (the 2 acts as a wild)' : ''}. The cards are already selected: tap "Baixar sequência". Then ask for another hint.`, `💡 Baja un juego nuevo: ${curto(cs)}${w ? ' (el 2 hace de comodín)' : ''}. Las cartas ya están marcadas: toca "Baixar sequência". Luego pide otra pista.`]);
+        }
+        if (step && step.t === 'att') {
+            const c = me.hand.find(h => h.id === step.card.id);
+            if (c) {
+                selectedCards = [c]; updateUI();
+                const mel = teamMelds[0][step.mi], mj = mel ? curto(mel.cards) : '…';
+                try { glow(($('team1Melds').children || [])[step.mi]); } catch (e) { }
+                return dizer([`💡 Encaixe o ${nomeCarta(c)} no jogo ${mj}: a carta já está marcada, toque no jogo (ou em "Encaixar"). Depois peça outra dica.`, `💡 Attach the ${nomeCarta(c)} to the meld ${mj}: the card is selected, tap the meld (or "Encaixar"). Then ask for another hint.`, `💡 Encaja el ${nomeCarta(c)} en el juego ${mj}: la carta ya está marcada, toca el juego (o "Encaixar"). Luego pide otra pista.`]);
+            }
+        }
+        let idx = 0; try { idx = aiChooseDiscard(me, 'master'); } catch (e) { }
+        const c = me.hand[idx]; if (!c) return dizer(['💡 Sem dica agora.', '💡 No hint right now.', '💡 Sin pista ahora.']);
+        selectedCards = [c]; updateUI();
+        const solta = !me.hand.some((o, j) => j !== idx && o.suit === c.suit && Math.abs(o.value - c.value) <= 2);
+        let risco = false; try { risco = assistRisky(c); } catch (e) { }
+        const mot = risco ? ['todas as opções têm algum risco, e esta é a menos ruim (ela encaixa num jogo dos adversários).', 'every option has some risk and this is the least bad (it fits an opponents\' meld).', 'todas las opciones tienen algún riesgo y esta es la menos mala (encaja en un juego rival).']
+            : solta ? ['é uma carta solta, não combina com nenhuma outra da sua mão.', 'it is a loose card that does not combine with the rest of your hand.', 'es una carta suelta que no combina con el resto de tu mano.']
+            : ['é a que menos atrapalha os seus jogos.', 'it is the one that hurts your melds the least.', 'es la que menos estorba tus juegos.'];
+        dizer([`💡 Descarte o ${nomeCarta(c)}: ${mot[0]} Já está marcada: toque em "Descartar".`, `💡 Discard the ${nomeCarta(c)}: ${mot[1]} It is selected: tap "Descartar".`, `💡 Descarta el ${nomeCarta(c)}: ${mot[2]} Ya está marcada: toca "Descartar".`]);
+    }
+    BX.dica = dica;
+
+    /* ---------------- tutorial interativo ---------------- */
+    const C = (id, v, s) => ({ id: 9000 + id, value: v, suit: s, isJoker: false, isSecondaryJoker: false, points: 5 });
+    const LICOES = [
+        { t: ['Sequência', 'Runs', 'Secuencia'],
+          txt: ['No Buraco aberto, um jogo é uma <b>sequência de 3 ou mais cartas do mesmo naipe, em ordem</b> (ex.: 5♥ 6♥ 7♥). Toque nas 3 cartas que formam uma sequência.', 'In open Buraco, a meld is a <b>run of 3 or more cards of the same suit, in order</b> (e.g. 5♥ 6♥ 7♥). Tap the 3 cards that make a run.', 'En el Buraco abierto, un juego es una <b>secuencia de 3 o más cartas del mismo palo, en orden</b> (ej.: 5♥ 6♥ 7♥). Toca las 3 cartas que forman una secuencia.'],
+          hand: [C(1, 9, '♦'), C(2, 6, '♥'), C(3, 13, '♠'), C(4, 5, '♥'), C(5, 3, '♣'), C(6, 7, '♥')], tipo: 'pick', resp: [2, 4, 6],
+          ok: ['Isso! 5♥ 6♥ 7♥: mesmo naipe, números seguidos. O Ás vale 1 ou 14 (A-2-3 ou Q-K-A).', 'Yes! 5♥ 6♥ 7♥: same suit, consecutive numbers. The Ace counts as 1 or 14 (A-2-3 or Q-K-A).', '¡Eso! 5♥ 6♥ 7♥: mismo palo, números seguidos. El As vale 1 o 14 (A-2-3 o Q-K-A).'],
+          erro: ['Ainda não. Procure cartas do MESMO naipe com números seguidos.', 'Not yet. Look for cards of the SAME suit with consecutive numbers.', 'Todavía no. Busca cartas del MISMO palo con números seguidos.'] },
+        { t: ['O curinga (o 2)', 'The wild (the 2)', 'El comodín (el 2)'],
+          txt: ['Só o <b>2</b> é curinga, e no máximo um por jogo. Ele pode ocupar o lugar de uma carta que falta. Monte uma sequência de ♠ usando o 2♦ para tapar o buraco entre o 5 e o 7.', 'Only the <b>2</b> is wild, and at most one per meld. It can fill in for a missing card. Build a ♠ run using the 2♦ to fill the gap between the 5 and the 7.', 'Solo el <b>2</b> es comodín, y máximo uno por juego. Puede ocupar el lugar de una carta que falta. Arma una secuencia de ♠ usando el 2♦ para tapar el hueco entre el 5 y el 7.'],
+          hand: [C(1, 4, '♠'), C(2, 9, '♥'), C(3, 5, '♠'), C(4, 2, '♦'), C(5, 7, '♠'), C(6, 12, '♣')], tipo: 'pick', resp: [1, 3, 4, 5],
+          ok: ['Perfeito: 4♠ 5♠ [2 faz o 6] 7♠. Cuidado: um curinga deixa a canastra "suja" (vale menos).', 'Perfect: 4♠ 5♠ [2 as the 6] 7♠. Careful: a wild makes the canasta "dirty" (worth less).', 'Perfecto: 4♠ 5♠ [el 2 hace de 6] 7♠. Ojo: un comodín deja la canasta "sucia" (vale menos).'],
+          erro: ['Quase. Pegue 4♠, 5♠, 7♠ e o 2♦ (ele faz de 6).', 'Almost. Pick 4♠, 5♠, 7♠ and the 2♦ (it stands in for the 6).', 'Casi. Toma 4♠, 5♠, 7♠ y el 2♦ (hace de 6).'] },
+        { t: ['Encaixar na mesa', 'Adding to the table', 'Encajar en la mesa'],
+          txt: ['Você pode <b>encaixar</b> cartas num jogo que já está na mesa. Na mesa há 3♣ 4♣ 5♣. Qual carta da sua mão encaixa?', 'You can <b>add</b> cards to a meld already on the table. The table has 3♣ 4♣ 5♣. Which card in your hand fits?', 'Puedes <b>encajar</b> cartas en un juego que ya está en la mesa. En la mesa hay 3♣ 4♣ 5♣. ¿Qué carta de tu mano encaja?'],
+          mesa: [[C(11, 3, '♣'), C(12, 4, '♣'), C(13, 5, '♣')]], hand: [C(1, 9, '♥'), C(2, 6, '♣'), C(3, 13, '♦'), C(4, 6, '♠')], tipo: 'pick', resp: [2],
+          ok: ['Isso! 6♣ continua a sequência. No jogo, selecione a carta e toque no jogo ou em "Encaixar".', 'Yes! 6♣ continues the run. In the game, select the card and tap the meld or "Encaixar".', '¡Eso! 6♣ continúa la secuencia. En el juego, selecciona la carta y toca el juego o "Encaixar".'],
+          erro: ['Não é essa. Precisa ser ♣ e o número seguinte (6) ou anterior (2).', 'Not that one. It must be ♣ and the next number (6) or the previous one (2).', 'Esa no. Debe ser ♣ y el número siguiente (6) o el anterior (2).'] },
+        { t: ['Canastras', 'Canastas', 'Canastas'],
+          txt: ['Uma <b>canastra</b> é um jogo com 7 ou mais cartas. <b>Limpa</b> (sem curinga) vale 200; <b>suja</b> (com curinga) vale 100. Qual destes jogos é uma canastra LIMPA?', 'A <b>canasta</b> is a meld of 7 or more cards. <b>Clean</b> (no wild) is worth 200; <b>dirty</b> (with a wild) is worth 100. Which of these melds is a CLEAN canasta?', 'Una <b>canasta</b> es un juego de 7 o más cartas. <b>Limpia</b> (sin comodín) vale 200; <b>sucia</b> (con comodín) vale 100. ¿Cuál de estos juegos es una canasta LIMPIA?'],
+          mesa: [[C(21, 3, '♥'), C(22, 4, '♥'), C(23, 5, '♥'), C(24, 6, '♥'), C(25, 7, '♥'), C(26, 8, '♥'), C(27, 9, '♥')],
+                 [C(31, 4, '♠'), C(32, 5, '♠'), C(33, 2, '♦'), C(34, 7, '♠'), C(35, 8, '♠'), C(36, 9, '♠'), C(37, 10, '♠')],
+                 [C(41, 5, '♣'), C(42, 6, '♣'), C(43, 7, '♣'), C(44, 8, '♣'), C(45, 9, '♣')]], tipo: 'meld', resp: 0,
+          ok: ['Isso! O de ♥ tem 7 cartas e nenhum curinga: limpa (200). O de ♠ tem o 2 (suja) e o de ♣ só tem 5 cartas (ainda não é canastra).', 'Yes! The ♥ one has 7 cards and no wild: clean (200). The ♠ one has the 2 (dirty) and the ♣ one only has 5 cards (not a canasta yet).', '¡Eso! El de ♥ tiene 7 cartas y ningún comodín: limpia (200). El de ♠ tiene el 2 (sucia) y el de ♣ solo tiene 5 cartas (aún no es canasta).'],
+          erro: ['Olhe de novo: precisa ter 7+ cartas e nenhum 2 no meio.', 'Look again: it needs 7+ cards and no 2 in the middle.', 'Mira de nuevo: debe tener 7+ cartas y ningún 2 en medio.'] },
+        { t: ['O lixo', 'The discard pile', 'El descarte'],
+          txt: ['Na sua vez você compra do monte <b>ou leva o lixo inteiro</b> (e depois descarta). Seu jogo: 4♦ 5♦ 9♦ K♣. No lixo (5 cartas) a de cima é o 6♦. Vale pegar o lixo?', 'On your turn you draw from the stock <b>or take the whole discard pile</b> (then discard). Your hand: 4♦ 5♦ 9♦ K♣. The pile (5 cards) has 6♦ on top. Is it worth taking?', 'En tu turno robas del mazo <b>o te llevas todo el descarte</b> (y luego descartas). Tu mano: 4♦ 5♦ 9♦ K♣. En el descarte (5 cartas) arriba está el 6♦. ¿Vale la pena tomarlo?'],
+          tipo: 'quiz', hand: [C(1, 4, '♦'), C(2, 5, '♦'), C(3, 9, '♦'), C(4, 13, '♣')], mesa: [[C(51, 6, '♦')]],
+          opts: [['Sim: o 6♦ forma 4♦ 5♦ 6♦ na hora e ainda vêm outras cartas', 'Yes: the 6♦ makes 4♦ 5♦ 6♦ right away and you get more cards', 'Sí: el 6♦ forma 4♦ 5♦ 6♦ al instante y llegan más cartas'], ['Não: o lixo nunca vale a pena', 'No: the pile is never worth it', 'No: el descarte nunca vale la pena']], resp: 0,
+          ok: ['Isso! Pegar o lixo é ótimo quando a carta de cima fecha um jogo. Só cuidado com lixo enorme que você não consegue usar.', 'Yes! Taking the pile is great when the top card completes a meld. Just beware of a huge pile you cannot use.', '¡Eso! Tomar el descarte es genial cuando la carta de arriba completa un juego. Cuidado con un descarte enorme que no puedes usar.'],
+          erro: ['Pense: a carta de cima completa uma sequência sua?', 'Think: does the top card complete a run of yours?', 'Piensa: ¿la carta de arriba completa una secuencia tuya?'] },
+        { t: ['Morto e batida', 'Dead hand and going out', 'Muerto y corte'],
+          txt: ['Última lição. Para <b>bater</b> (ficar sem cartas e encerrar a queda) você precisa de:', 'Last lesson. To <b>go out</b> (empty your hand and end the round) you need:', 'Última lección. Para <b>cortar</b> (quedarte sin cartas y terminar la ronda) necesitas:'],
+          tipo: 'quiz', opts: [['Só ficar sem cartas', 'Just an empty hand', 'Solo quedarte sin cartas'], ['Ter pego o morto e ter ao menos uma canastra limpa', 'Having taken the dead hand and at least one clean canasta', 'Haber tomado el muerto y tener al menos una canasta limpia'], ['Ter 3 canastras sujas', 'Having 3 dirty canastas', 'Tener 3 canastas sucias']], resp: 1,
+          ok: ['Isso! O <b>morto</b> são 11 cartas extras que você pega ao esvaziar a mão. Sem pegar o morto, são −100 pontos. Quem bate ganha +100.', 'Yes! The <b>dead hand</b> is 11 extra cards you take when your hand empties. Without taking it, it is −100 points. Going out gives +100.', '¡Eso! El <b>muerto</b> son 11 cartas extra que tomas al vaciar la mano. Sin tomarlo, son −100 puntos. Quien corta gana +100.'],
+          erro: ['Não. Lembre: morto pego + canastra limpa.', 'No. Remember: dead hand taken + a clean canasta.', 'No. Recuerda: muerto tomado + canasta limpia.'] }
+    ];
+    let tut = null;
+    function tutStart() { tut = { i: 0, sel: new Set(), ok: false }; tutRender(); }
+    function tutRender() {
+        const L = LICOES[tut.i]; tut.ok = false; tut.sel = new Set();
+        $('tutBar').innerHTML = LICOES.map((_, k) => `<i class="${k < tut.i ? 'done' : k === tut.i ? 'on' : ''}"></i>`).join('');
+        const miniCard = (c, fn, sel) => renderCardHTML(c, fn, sel, '', '');
+        let h = `<div class="tut-step">${tx(['LIÇÃO', 'LESSON', 'LECCIÓN'])} ${tut.i + 1} / ${LICOES.length} · ${esc(tx(L.t)).toUpperCase()}</div><div class="tut-card">${tx(L.txt)}</div>`;
+        if (L.mesa) {
+            h += '<div class="tut-melds" id="tutMesa">' + L.mesa.map((m, k) =>
+                `<div class="row${L.tipo === 'meld' ? ' pick' : ''}" ${L.tipo === 'meld' ? `role="button" tabindex="0" aria-label="${tx(['Jogo', 'Meld', 'Juego'])} ${k + 1}" onclick="BuracoX.tutMeld(${k})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();BuracoX.tutMeld(${k})}"` : ''} data-k="${k}">${m.map(c => miniCard(c, null, false)).join('')}</div>`).join('') + '</div>';
+        }
+        if (L.hand) h += '<div class="tut-hand" id="tutHand">' + L.hand.map(c => miniCard(c, `BuracoX.tutCard(${c.id})`, false)).join('') + '</div>';
+        if (L.opts) h += '<div class="tut-opts">' + L.opts.map((o, k) => `<button class="tut-opt" onclick="BuracoX.tutOpt(${k})">${esc(tx(o))}</button>`).join('') + '</div>';
+        if (L.tipo === 'pick') h += `<div class="seg c2" style="margin-bottom:0"><button onclick="BuracoX.tutCheck()" class="active">${tx(['Conferir', 'Check', 'Comprobar'])}</button><button onclick="BuracoX.tutClear()">${tx(['Limpar', 'Clear', 'Limpiar'])}</button></div>`;
+        h += '<div id="tutFb" class="tut-fb" role="status" aria-live="polite"></div>';
+        $('tutBody').innerHTML = h; tutBtn();
+        tutAria();
+    }
+    function tutAria() { document.querySelectorAll('#tutHand .card').forEach(el => { const m = /tutCard\((\d+)\)/.exec(el.getAttribute('onclick') || ''); if (!m) return; const c = LICOES[tut.i].hand.find(x => x.id === +m[1]); el.setAttribute('role', 'button'); el.setAttribute('tabindex', '0'); el.setAttribute('aria-pressed', tut.sel.has(+m[1]) ? 'true' : 'false'); if (c) el.setAttribute('aria-label', nomeCarta(c)); }); }
+    function tutBtn() { const b = $('tutNext'); b.disabled = !tut.ok; b.textContent = tut.i === LICOES.length - 1 ? tx(['Concluir 🎉', 'Finish 🎉', 'Terminar 🎉']) : tx(['Próxima', 'Next', 'Siguiente']); }
+    function tutFb(ok, t) { const f = $('tutFb'); f.className = 'tut-fb ' + (ok ? 'ok' : 'err'); f.innerHTML = (ok ? '✅ ' : '❌ ') + tx(t); if (ok) { tut.ok = true; tutBtn(); try { sndPlay('tap'); } catch (e) { } } }
+    BX.tutCard = id => {
+        if (tut.sel.has(id)) tut.sel.delete(id); else tut.sel.add(id);
+        const L = LICOES[tut.i];
+        $('tutHand').innerHTML = L.hand.map(c => renderCardHTML(c, `BuracoX.tutCard(${c.id})`, tut.sel.has(c.id), '', '')).join(''); tutAria();
+    };
+    BX.tutClear = () => { tut.sel = new Set(); $('tutHand').innerHTML = LICOES[tut.i].hand.map(c => renderCardHTML(c, `BuracoX.tutCard(${c.id})`, false, '', '')).join(''); tutAria(); const f = $('tutFb'); f.className = 'tut-fb'; f.textContent = ''; };
+    BX.tutCheck = () => {
+        const L = LICOES[tut.i], want = L.resp.map(n => 9000 + n).sort().join(), got = [...tut.sel].sort().join();
+        tutFb(want === got, want === got ? L.ok : L.erro);
+    };
+    BX.tutMeld = k => { const L = LICOES[tut.i]; document.querySelectorAll('#tutMesa .row').forEach((r, j) => r.classList.toggle('sel', j === k)); tutFb(k === L.resp, k === L.resp ? L.ok : L.erro); };
+    BX.tutOpt = k => { const L = LICOES[tut.i]; document.querySelectorAll('.tut-opt').forEach((b, j) => b.classList.toggle('sel', j === k)); tutFb(k === L.resp, k === L.resp ? L.ok : L.erro); };
+    function tutNext() {
+        if (!tut || !tut.ok) return;
+        if (tut.i < LICOES.length - 1) { tut.i++; tutRender(); return; }
+        sj(K.tut, { done: 1, t: Date.now() }); bus.emit('tutorial', {});
+        $('tutBar').innerHTML = LICOES.map(() => '<i class="done"></i>').join('');
+        tut.fim = true;
+        $('tutBody').innerHTML = '<div class="tut-card" style="text-align:center;font-size:16px">🎉 ' + tx(['<b>Tutorial concluído!</b><br>Agora você sabe montar jogos, usar o curinga, encaixar, fazer canastra, pegar o lixo e bater.<br><br>Dica: ligue o <b>🎓 Modo treino</b> no menu para receber a dica do mestre enquanto joga.', '<b>Tutorial complete!</b><br>Now you know how to build melds, use the wild, add to the table, make a canasta, take the pile and go out.<br><br>Tip: turn on <b>🎓 Training mode</b> in the menu to get the master\'s hint while you play.', '<b>¡Tutorial completo!</b><br>Ahora sabes armar juegos, usar el comodín, encajar, hacer canasta, tomar el descarte y cortar.<br><br>Consejo: activa el <b>🎓 Modo práctica</b> en el menú para recibir la pista del maestro mientras juegas.']) + '</div>';
+        $('tutNext').disabled = true; $('tutNext').textContent = tx(['Concluído', 'Done', 'Completo']);
+        celebrateSafe();
+    }
+    function celebrateSafe() { try { window.buracoConfete && window.buracoConfete(110); } catch (e) { } }
+    function tutRefresh() { if (!tut || tut.fim) return; tutRender(); }
+
+    /* ---------------- música de fundo e volumes ---------------- */
+    let mus = Object.assign({ on: 0, vol: 50, fx: 100 }, lj(K.mus, {}));
+    const ACORDES = [[57, 60, 64, 67], [50, 53, 57, 60], [55, 59, 62, 65], [48, 52, 55, 59]], BAIXOS = [45, 38, 43, 36];
+    const PADRAO = [0, 2, 1, 3, 2, 1, 3, 2], midi = n => 440 * Math.pow(2, (n - 69) / 12), OITAVA = 60 / 76 / 2;
+    let mCtx = null, mGain = null, mNext = 0, mStep = 0, mTimer = 0;
+    function nota(f, t, dur, vol, tipo) {
+        const o = mCtx.createOscillator(), g = mCtx.createGain(); o.type = tipo || 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g); g.connect(mGain); o.start(t); o.stop(t + dur + 0.05);
+    }
+    function escova(t, vol) {
+        const n = Math.floor(mCtx.sampleRate * 0.09), b = mCtx.createBuffer(1, n, mCtx.sampleRate), d = b.getChannelData(0);
+        for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2);
+        const s = mCtx.createBufferSource(); s.buffer = b; const f = mCtx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 6000;
+        const g = mCtx.createGain(); g.gain.value = vol; s.connect(f); f.connect(g); g.connect(mGain); s.start(t);
+    }
+    function passo(s, t) {
+        const ac = ACORDES[Math.floor(s / 8) % 4], k = s % 8;
+        if (k === 0 || k === 4) { nota(midi(BAIXOS[Math.floor(s / 8) % 4] + (k === 4 ? 7 : 0)), t, OITAVA * 3.4, 0.5, 'triangle'); }
+        if (k === 0) ac.slice(0, 3).forEach(n => nota(midi(n), t, OITAVA * 7, 0.07, 'sine'));          // acorde suave
+        if (!(k % 2 === 1 && Math.random() < 0.25)) { const n = ac[PADRAO[k]] + 12; nota(midi(n), t, OITAVA * 2.2, 0.16, 'triangle'); nota(midi(n + 12), t, OITAVA * 1.2, 0.04, 'sine'); }
+        if (k === 2 || k === 6) escova(t, 0.05);
+    }
+    function musTick() {
+        try {
+            if (sndMaster && Math.abs(sndMaster.gain.value - 0.55 * mus.fx / 100) > 0.001) sndMaster.gain.value = 0.55 * mus.fx / 100;
+            const pode = mus.on && sndOn && sndCtx && sndCtx.state === 'running' && !document.hidden;
+            if (!pode) { if (mGain && mCtx === sndCtx) try { mGain.gain.setTargetAtTime(0, mCtx.currentTime, 0.15); } catch (e) { } mNext = 0; return; }
+            if (mCtx !== sndCtx) { mCtx = sndCtx; mGain = mCtx.createGain(); mGain.gain.value = 0; mGain.connect(mCtx.destination); mStep = 0; mNext = 0; }
+            const alvo = 0.2 * mus.vol / 100; mGain.gain.setTargetAtTime(alvo, mCtx.currentTime, 0.4);
+            if (!mNext || mNext < mCtx.currentTime - 0.5) mNext = mCtx.currentTime + 0.12;
+            while (mNext < mCtx.currentTime + 0.9) { passo(mStep, mNext); mNext += OITAVA; mStep++; }
+        } catch (e) { }
+    }
+    mTimer = setInterval(musTick, 250);
+    function musBtn() { const b = $('musicBtn'); if (!b) return; b.classList.toggle('off', !mus.on); b.title = tx(mus.on ? ['Música ligada (toque para desligar)', 'Music on (tap to turn off)', 'Música activada (toca para apagar)'] : ['Música desligada (toque para ligar)', 'Music off (tap to turn on)', 'Música apagada (toca para activar)']); b.setAttribute('aria-pressed', mus.on ? 'true' : 'false'); }
+    function setMus(v) { mus.on = v ? 1 : 0; sj(K.mus, mus); musBtn(); renderSom(); if (v && typeof sndInit === 'function') sndInit(true); musTick(); }
+    BX.toggleMusic = () => { setMus(!mus.on); showToast('\u2063' + tx(mus.on ? ['🎵 Música ligada' + (sndOn ? '' : ' (o som geral 🔊 está desligado)'), '🎵 Music on' + (sndOn ? '' : ' (general sound 🔊 is off)'), '🎵 Música activada' + (sndOn ? '' : ' (el sonido general 🔊 está apagado)')] : ['🎵 Música desligada', '🎵 Music off', '🎵 Música apagada']), ''); };
+
+    /* ---------------- acessibilidade ---------------- */
+    let acc = Object.assign({ hc: 0, rm: 0 }, lj(K.acc, {}));
+    function applyAcc() {
+        document.body.classList.toggle('hc', !!acc.hc); document.body.classList.toggle('rm', !!acc.rm);
+        [['somHc', acc.hc], ['somRm', acc.rm]].forEach(([id, v]) => { const b = $(id); if (b) b.querySelectorAll('button').forEach(x => x.classList.toggle('active', x.dataset.v === String(+!!v))); });
+    }
+    function renderSom() {
+        const b = $('somMus'); if (b) b.querySelectorAll('button').forEach(x => x.classList.toggle('active', x.dataset.v === String(mus.on)));
+        if ($('somMusVol')) $('somMusVol').value = mus.vol; if ($('somFxVol')) $('somFxVol').value = mus.fx;
+        applyAcc();
+    }
+    function wireSom() {
+        $('somMus').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setMus(+b.dataset.v); });
+        $('somMusVol').addEventListener('input', e => { mus.vol = +e.target.value; sj(K.mus, mus); musTick(); });
+        $('somFxVol').addEventListener('input', e => { mus.fx = +e.target.value; sj(K.mus, mus); musTick(); });
+        $('somFxVol').addEventListener('change', () => { try { sndInit(true); sndPlay('draw'); } catch (e) { } });
+        [['somHc', 'hc'], ['somRm', 'rm']].forEach(([id, k]) => $(id).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; acc[k] = +b.dataset.v; sj(K.acc, acc); applyAcc(); }));
+    }
+    function a11yHand() {
+        const hand = document.getElementById('playerHand'); if (!hand) return;
+        hand.querySelectorAll('.card').forEach(el => {
+            const m = /toggleCardSelection\((\d+)\)/.exec(el.getAttribute('onclick') || ''); if (!m) return;
+            const c = players[0] && players[0].hand.find(x => x.id === +m[1]); if (!c) return;
+            el.setAttribute('role', 'button'); el.setAttribute('tabindex', '0');
+            el.setAttribute('aria-pressed', selectedCards.some(s => s.id === c.id) ? 'true' : 'false');
+            el.setAttribute('aria-label', nomeCarta(c) + (selectedCards.some(s => s.id === c.id) ? tx([', selecionada', ', selected', ', seleccionada']) : ''));
+        });
+        document.querySelectorAll('.pile.click').forEach((p, i) => { p.setAttribute('role', 'button'); p.setAttribute('tabindex', '0'); p.setAttribute('aria-label', tx(i === 0 ? ['Comprar do monte', 'Draw from the stock', 'Robar del mazo'] : ['Pegar o lixo', 'Take the discard pile', 'Tomar el descarte'])); });
+    }
+    document.addEventListener('keydown', ev => {
+        const t = ev.target;
+        if ((ev.key === 'Enter' || ev.key === ' ') && t && (t.classList.contains('card') || t.classList.contains('pile')) && t.getAttribute('role') === 'button') { ev.preventDefault(); t.click(); }
+    });
+    // foco preso nas janelas, Esc nas janelas antigas, devolve o foco ao fechar
+    const lastFocus = new Map();
+    function watchModals() {
+        const mo = new MutationObserver(list => list.forEach(r => {
+            const m = r.target; if (!m.classList || !m.classList.contains('modal')) return;
+            const aberto = !m.classList.contains('hidden');
+            if (aberto && !lastFocus.has(m)) { lastFocus.set(m, document.activeElement); setTimeout(() => { const f = m.querySelector('button:not([disabled]),input,textarea'); if (f && !m.classList.contains('hidden')) try { f.focus({ preventScroll: true }); } catch (e) { } }, 30); }
+            if (!aberto && lastFocus.has(m)) { const p = lastFocus.get(m); lastFocus.delete(m); try { if (p && document.contains(p) && p.offsetParent !== null) p.focus({ preventScroll: true }); } catch (e) { } }
+        }));
+        document.querySelectorAll('.modal').forEach(m => mo.observe(m, { attributes: true, attributeFilter: ['class'] }));
+    }
+    document.addEventListener('keydown', ev => {
+        const abertos = [...document.querySelectorAll('.modal:not(.hidden)')];
+        if (ev.key === 'Tab' && abertos.length) {
+            const m = abertos[abertos.length - 1], fs = [...m.querySelectorAll('button:not([disabled]),input,textarea,[tabindex="0"]')].filter(e => e.offsetParent !== null);
+            if (!fs.length) return;
+            const i = fs.indexOf(document.activeElement);
+            if (ev.shiftKey && i <= 0) { ev.preventDefault(); fs[fs.length - 1].focus(); }
+            else if (!ev.shiftKey && (i === -1 || i === fs.length - 1)) { ev.preventDefault(); fs[0].focus(); }
+            return;
+        }
+        if (ev.key === 'Escape') {
+            const mapa = { rulesModal: () => toggleRulesModal(), pileModal: () => hidePileModal(), leaveModal: () => leaveCancel(), confirmDiscardModal: () => cancelDrawFromDiscard() };
+            for (const id in mapa) { const m = $(id); if (m && !m.classList.contains('hidden')) { mapa[id](); return; } }
+            return;
+        }
+        // atalhos (só no jogo, sem janela aberta e sem digitar)
+        const tag = (ev.target.tagName || '').toLowerCase();
+        if (abertos.length || ev.ctrlKey || ev.metaKey || ev.altKey || tag === 'input' || tag === 'textarea') return;
+        if ($('game').classList.contains('hidden')) return;
+        const acao = { m: () => playerDrawFromDeck(), l: () => playerDrawFromDiscard(), b: () => playerMeldsSelected(), e: () => playerAttachSelected(), d: () => playerDiscardSelected(), c: () => clearSelection(), o: () => sortPlayerHand(), h: () => dica() }[ev.key.toLowerCase()];
+        if (acao) { ev.preventDefault(); acao(); }
+    });
+
+    /* ---------------- animações das cartas ---------------- */
+    let lastTop, meldPrev = [null, null], lastSc = [null, null], pend = [];
+    function replay(el, cls) { if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); el.addEventListener('animationend', () => el.classList.remove(cls), { once: true }); }
+    // o jogo redesenha a mesa mais de uma vez por jogada; por isso o efeito é reaplicado por ~0,5 s se o elemento foi recriado
+    function fxAdd(get, cls) { pend.push({ get, cls, t: performance.now(), done: false }); }
+    function fxRun() {
+        const top = discardPile[discardPile.length - 1], id = top ? top.id : null;
+        if (id !== lastTop) { if (lastTop !== undefined && id != null) fxAdd(() => document.querySelector('#discardPileCard .card'), 'fx-drop'); lastTop = id; }
+        ['team1Melds', 'team2Melds'].forEach((cid, t) => {
+            const arr = (teamMelds[t] || []).map(m => m.cards.length), prev = meldPrev[t];
+            if (prev) arr.forEach((n, i) => { if (prev[i] == null) fxAdd(() => $(cid).children[i], 'fx-pop'); else if (n > prev[i]) fxAdd(() => $(cid).children[i], 'fx-grow'); });
+            meldPrev[t] = arr;
+        });
+        [['scoreTeam1', 0], ['scoreTeam2', 1]].forEach(([eid, i]) => { const el = $(eid); if (!el) return; const v = el.textContent; if (lastSc[i] !== null && v !== lastSc[i]) fxAdd(() => $(eid), 'fx-score'); lastSc[i] = v; });
+        const now = performance.now();
+        pend = pend.filter(p => now - p.t < 500);
+        pend.forEach(p => { let el = null; try { el = p.get(); } catch (e) { } if (el && !el.classList.contains(p.cls) && !(p.done && now - p.t > 350)) { replay(el, p.cls); p.done = true; } });
+    }
+    function dealFx() {
+        const h = $('playerHand'); if (!h) return;
+        h.querySelectorAll('.card.fly-in').forEach((el, i) => el.style.setProperty('--dl', i));
+        h.classList.add('dealing'); setTimeout(() => h.classList.remove('dealing'), 1800);
+    }
+    const _uu = window.updateUI;
+    window.updateUI = function () {
+        const r = _uu.apply(this, arguments);
+        try { fxRun(); a11yHand(); document.body.classList.toggle('treino-on', treinoAtivo()); const b = $('treinoBadge'); if (b) b.classList.toggle('hidden', !treinoAtivo()); } catch (e) { console.log('fxerr ' + e.message); }
+        return r;
+    };
+    const _snr = window.startNextRound;
+    window.startNextRound = function () { meldPrev = [null, null]; lastTop = undefined; const r = _snr.apply(this, arguments); try { dealFx(); } catch (e) { } return r; };
+
+    /* ---------------- desempenho / aba escondida ---------------- */
+    document.addEventListener('visibilitychange', () => document.body.classList.toggle('tab-hidden', document.hidden));
+
+    /* ---------------- ligações e abertura ---------------- */
+    const _ab = window.buracoAbrir;
+    window.buracoAbrir = function (id) {
+        if (id === 'metaModal') renderMeta();
+        if (id === 'tutModal') tutStart();
+        if (id === 'somModal') renderSom();
+        return _ab.apply(this, arguments);
+    };
+    window.buracoConfete = n => { try { const f = window.__celebrate; if (f) f(n); } catch (e) { } };
+
+    const _sl = window.setLang;
+    window.setLang = function () {
+        const r = _sl.apply(this, arguments);
+        try { renderPerfil(); musBtn(); tutRefresh(); const mm = $('metaModal'); if (mm && !mm.classList.contains('hidden')) renderMeta(); } catch (e) { }
+        return r;
+    };
+    function init() {
+        applyAcc(); musBtn(); wireSom(); watchModals(); renderPerfil(); renderSom();
+        setTreino(treino);
+        const a = $('btnModoNormal'), b = $('btnModoTreino');
+        if (a) a.addEventListener('click', () => setTreino(false)); if (b) b.addEventListener('click', () => setTreino(true));
+        $('tutNext').addEventListener('click', tutNext);
+        const ft = $('firstTut'); if (ft) ft.addEventListener('click', () => { const s = $('firstSkip'); if (s) s.click(); buracoAbrir('tutModal'); });
+        document.querySelectorAll('.modal').forEach(m => { if (!m.hasAttribute('aria-label') && m.querySelector('h3')) m.setAttribute('aria-label', m.querySelector('h3').textContent); });
+        ['toast', 'statusMessage'].forEach(i => { const e = $(i); if (e) { e.setAttribute('role', 'status'); e.setAttribute('aria-live', 'polite'); } });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 </script>
 
